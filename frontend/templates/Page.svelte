@@ -25,5 +25,6 @@
 </svelte:head>
 
 <main>
+    <slot />
     {@html htmlContent}
 </main>

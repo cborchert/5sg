@@ -1,6 +1,7 @@
 // allows us to import svelte files directly in node without transpilation / bundling
 require("svelte/register");
 const fs = require("fs");
+const path = require("path");
 
 // import local utils
 const generateHtml = require("./utils/generateHtml");
@@ -14,30 +15,58 @@ const Template = require("./frontend/templates/Page.svelte").default;
 const PORT = 3000;
 const app = require("express")();
 
-// for each file create a page
-const contentFiles = getFiles("./content", "md");
+// for each md and each svelte file in ./content create a page
+const contentFiles = getFiles("./content", ["md", "svelte"]);
 contentFiles.forEach((file) => {
   try {
-    console.log(file);
     // get the path for the page
-    // e.g. /content/path/to/myPage.md => /path/to/myPage
-    const pagePath = file.replace(/^content\//, "/").replace(/\.md$/, "");
+    // e.g. /content/path/to/myPage.md => /path/to/myPage.html
+    const pagePath =
+      file
+        .replace(/^\.\/content\//, "/")
+        .replace(/\.[^\.]*$/, "")
+        .toLowerCase() + ".html";
 
-    // convert the file's text into html
-    const content = fs.readFileSync(file);
-    const processed = processor.processSync(content);
-    const { contents: htmlContent, data } = processed;
+    let pageContent = "";
 
-    // inject the data and html into the template
-    const { html, css, head } = Template.render({
-      htmlContent,
-      data,
-    });
+    const fileExtension = path.extname(file);
+
+    if (fileExtension === ".md") {
+      // handle markdown
+
+      // convert the file's text into html
+      const content = fs.readFileSync(file);
+      const processed = processor.processSync(content);
+      const { contents: htmlContent, data } = processed;
+
+      // inject the data and html into the template
+      const { html, css, head } = Template.render({
+        htmlContent,
+        data,
+      });
+      pageContent = generateHtml({ html, css, head });
+    } else if (fileExtension === ".svelte") {
+      // handle svelte
+      // import the svelte file and render it
+      const Page = require(file).default;
+      const { html, css, head } = Page.render();
+
+      // inject  the rendered component inot the html shell template
+      pageContent = generateHtml({ html, css, head });
+    }
 
     // create the route
     app.get(pagePath, async function (req, res) {
-      res.send(generateHtml({ html, css, head }));
+      res.send(pageContent);
     });
+
+    // handle /my/path/to/index.html cases
+    if (pagePath.endsWith("/index.html")) {
+      const nonIndexPath = pagePath.replace(/\/index\.html$/, "/");
+      app.get(nonIndexPath, async function (req, res) {
+        res.send(pageContent);
+      });
+    }
 
     console.log(
       `Created the page for ${file} at http://localhost:${PORT}${pagePath}`
