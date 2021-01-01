@@ -1,0 +1,20 @@
+{
+  "name": "svelte-ssg",
+  "version": "1.0.0",
+  "description": "simple static site generator for svelte",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Christopher Borchert",
+  "devDependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.6",
+    "remark": "^13.0.0",
+    "remark-html": "^13.0.1",
+    "remark-frontmatter": "^3.0.0",
+    "remark-parse-frontmatter": "^1.0.1",
+    "svelte": "^3.31.0"
+  },
+  "scripts": {
+    "dev": "nodemon devServer.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg"
+  }
+}
