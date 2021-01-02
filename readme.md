@@ -20,7 +20,7 @@ For demo purposes of the build process, try this:
 - Run `yarn build`
 - Check the `./build` directory 🕵️‍♀️
 
-### What the 🤬 !? My svelte components DON'T DO ANYTHING
+### What the 🤬!? My svelte components DON'T DO ANYTHING
 
 Calm down. Breath. This is normal (for now).
 
@@ -31,10 +31,10 @@ While partial hydration of svelte components is on the roadmap, svelte component
 5SG (working title) is a static site generator boiler plate made for simplicity. It works like this:
 
 1. You put your content in the `/content` directory as `.md` files or `.svelte` files
-2. You modify the templates in `/frontend/templates` to suite your design
-3. You build (coming soon 👀).
+2. You modify the templates in `/frontend/templates` to suit your design
+3. You build using `yarn build`.
 
-That's it.
+That's it. Your site is ready to publish.
 
 I'd like to add some bells and whistles, but this three-step process should never change. As the name suggests, 5SG is meant to be simple, and to stay simple. If you're building something complex which requires more functionality, this might not be the right starting point for you. However, it is meant as a boiler plate, so go nuts changing whatever you want.
 
@@ -42,22 +42,26 @@ I'd like to add some bells and whistles, but this three-step process should neve
 
 The goal of this project is to create a SSG which fulfills the following requirements:
 
-1. It is easy for developers and content creators to create their sites.
+1. It is easy for developers and content creators to create their sites using components and markdown.
 2. The generated site can be deployed anywhere (e.g. Netlify)
-3. The site remains lightweight without unncessary http requests and downloads for the end user
+3. The site remains lightweight without unnecessary http requests and downloads for the end-user
 4. Build time is minimal
 
-I've found Gatsby, Next.js, and other frameworks to be extremely powerful, but extremely cumbersome. Sometimes you just want to build a blog or a product page.
+I've found Gatsby, Next.js, and other frameworks to be extremely powerful, but extremely cumbersome. Sometimes you just want to build a blog or a product page and you don't want to be bothered with the whizz-bang details.
 
 ## Why svelte?
 
 I'm a React developer, and I love React. But following the simplicity principal, svelte wins. You can write straight up HTML + CSS and be done with your page if you want. That's pretty special.
 
-## Why not use SSG X?
+## Why not use SSG XYZ instead of 5SG?
 
-At this point I can definitely say: you should. This is a work in progress. But, more generally, 5SG is built to be easy to use, i.e. Stupid Simple. While other similar frameworks are much more flexible and powerful, I believe 5SG can be used after 2 minutes of introduction.
+At this point I can definitely say: you should use something else. This is a work in progress.
 
-Also, I suffer from the need to build my own version of things.
+More generally, and what I hope the answer to be in the future:
+
+5SG is built to be stupid simple to use. While other similar frameworks are much more flexible and powerful, I believe 5SG can be used after 2 minutes of introduction.
+
+Also, I suffer from the need to build my own version of things, and this is a good opportunity for me to learn. 🤷‍♀️
 
 ## Roadmap to a v1
 
@@ -101,7 +105,7 @@ If I ever make it to a version 1, the path will look like this
   - Reduce build time
     - Async building ?
   - Reduce page footprint as much as possible
-    - Introduce a
+    - Introduce a bundler and/or minimization process
   - Use a cache to speed up consecutive builds (incremental builds)
   - Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
 - [ ] 11. Partial Hydration
