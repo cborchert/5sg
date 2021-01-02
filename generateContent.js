@@ -111,9 +111,9 @@ async function generateContent(handleContent) {
           onSuccess: (finalPath) => {
             log(`Created the page for ${file} at ${finalPath}`);
             successfulBuilds += 1;
+            resolve();
           },
         });
-        resolve();
       } catch (err) {
         error(
           `======================\nERROR CREATING PAGE:\n----------------------\n`
@@ -123,12 +123,12 @@ async function generateContent(handleContent) {
           `\n----------------------\nThe above error was encountered while creating the page for ${file}\n======================\n`
         );
         unsuccessfulBuilds += 1;
-        reject();
+        resolve();
       }
-      promises.push(contentPromise);
     });
+    promises.push(contentPromise);
   });
-  await Promise.allSettled(promises);
+  await Promise.all(promises);
   report();
 }
 

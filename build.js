@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
+const rimraf = require("rimraf");
 
 const generateContent = require("./generateContent.js");
 
@@ -11,7 +12,7 @@ process.on("exit", (code) =>
 // remove the previous build
 try {
   console.log(`Removing previous build...`);
-  fs.rmdirSync("./build/", { recursive: true });
+  rimraf.sync("./build/");
   console.log(`Previous build deleted.`);
 } catch (err) {
   console.error(`Error while deleting previous build.`);
