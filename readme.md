@@ -12,6 +12,8 @@ For demo purposes of the dev server, try this:
 - Run `yarn dev`
 - Go to [http://localhost:3000/readme.html](http://localhost:3000/readme.html)
 
+Note that, while partial hydration of svelte components is on the roadmap, svelte components are not yet being hydrated (so click handlers and interactive bits won't work).
+
 ## Introduction
 
 5SG (working title) is a static site generator boiler plate made for simplicity. It works like this:
