@@ -76,16 +76,19 @@ If I ever make it to a version 1, the path will look like this
 - [ ] 4. Customization of individual page using frontmatter
   - [ ] Generate Excerpt
   - [ ] SEO
-  - [ ] title
-  - [ ] Custom Paths
-  - [ ] Published flag
+  - [x] title
+  - [x] Custom Paths
+  - [x] Published flag
 - [ ] 5. Content Improvements
   - Add `./static` folder which is copied over to build
   - Relative images are copied correctly to `/build`
   - Relative links are treated correctly
   - Global CSS file
+
+**MVP ready once 1 - 4 complete**
+
 - [ ] 6. Content Improvements pt. 2
-  - Add remark plugins for
+  - Add (optional) remark plugins for
     - Emojis
     - Katex
     - Prism
@@ -101,10 +104,9 @@ If I ever make it to a version 1, the path will look like this
   - Create an author's page
 - [ ] 9. Image Processing
   - Preprocess images using sharp and/or blurhash to create a blur up affect for images and reduce page load
-- [ ] 9. Performance
+- [ ] 10. Performance
   - Dev server be very fast and should reload the browser on save using livereload
   - Reduce build time
-    - Async building ?
   - Reduce page footprint as much as possible
     - Introduce a bundler and/or minimization process
   - Use a cache to speed up consecutive builds (incremental builds)
@@ -113,6 +115,10 @@ If I ever make it to a version 1, the path will look like this
   - Allow for use of svelte beyond as a templating language using partial hydration of marked components
 - [ ] 12. More research
   - Is it any good ? What needs to change in the API before launching v1?
+
+## Stretch goals:
+
+- Support MDX style components for svelte ([MDSvex](https://mdsvex.com/))
 
 ## Build Times
 
