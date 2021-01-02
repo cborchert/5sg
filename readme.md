@@ -1,4 +1,4 @@
-# Stupid Simple Svelte Site Generator (5SG)
+# Stupid Simple Svelte Static Site Generator (5SG)
 
 NOTE: This is like 5 hours old. It's not beta, it's not alpha. It's not even a v.0. It's like a v. negative one. Someday it might kick ass. Today, it doesn't even suck -- it hardly does anything. You've been warned.
 
