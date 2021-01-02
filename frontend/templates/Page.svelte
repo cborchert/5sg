@@ -21,7 +21,7 @@
 </style>
 
 <svelte:head>
-    <title>{htmlTitle}</title>
+    <title>{htmlTitle || ''}</title>
 </svelte:head>
 
 <main>

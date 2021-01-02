@@ -74,10 +74,11 @@ If I ever make it to a version 1, the path will look like this
 - [x] 3. Build
   - Given `.md` and `.svelte` files in a `./content` directory, and a `./frontend/templates/Page.svelte` file, create a `xxx.html` file in the `/build` directory ready to be published
 - [ ] 4. Customization of individual page using frontmatter
-  - Generate Excerpt
-  - SEO
-  - Custom Paths
-  - Published flag
+  - [ ] Generate Excerpt
+  - [ ] SEO
+  - [ ] title
+  - [ ] Custom Paths
+  - [ ] Published flag
 - [ ] 5. Content Improvements
   - Add `./static` folder which is copied over to build
   - Relative images are copied correctly to `/build`

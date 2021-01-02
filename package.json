@@ -9,8 +9,8 @@
     "express": "^4.17.1",
     "nodemon": "^2.0.6",
     "remark": "^13.0.0",
-    "remark-html": "^13.0.1",
     "remark-frontmatter": "^3.0.0",
+    "remark-html": "^13.0.1",
     "remark-parse-frontmatter": "^1.0.1",
     "svelte": "^3.31.0"
   },
