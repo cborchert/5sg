@@ -5,7 +5,6 @@ const processor = remark()
   .use(require("remark-frontmatter"))
   .use(require("remark-parse-frontmatter"))
   .use(require("remark-html"))
-  .use(console.dir)
   .freeze();
 
 module.exports = processor;

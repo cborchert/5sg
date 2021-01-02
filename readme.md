@@ -118,6 +118,6 @@ If I ever make it to a version 1, the path will look like this
 
 For the sake of benchmarking, I've loaded 1000 local content files. As I work on this project, I'll run `yarn build:quiet` to keep track of the build speed. The end goal for v1 is to be at least as fast as a similar site using Gatsby or Hugo.
 
-| Date       | Commit  | Message                                   |
-| ---------- | ------- | ----------------------------------------- |
-| 2 jan 2021 | 02c3b91 | Built 1000 files in 3659ms with 12 errors |
+| Date       | Commit  | time  |
+| ---------- | ------- | ----- |
+| 2 jan 2021 | 02c3b91 | 4.12s |
