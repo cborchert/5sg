@@ -12,7 +12,19 @@ For demo purposes of the dev server, try this:
 - Run `yarn dev`
 - Go to [http://localhost:3000/readme.html](http://localhost:3000/readme.html)
 
-Note that, while partial hydration of svelte components is on the roadmap, svelte components are not yet being hydrated (so click handlers and interactive bits won't work).
+For demo purposes of the build process, try this:
+
+- Clone or the repo
+- Run `yarn` or `npm install`
+- Copy this readme file to `/content/readme.md`, or add your own content.
+- Run `yarn build`
+- Check the `./build` directory 🕵️‍♀️
+
+### What the 🤬 !? My svelte components DON'T DO ANYTHING
+
+Calm down. Breath. This is normal (for now).
+
+While partial hydration of svelte components is on the roadmap, svelte components are not yet being hydrated (so click handlers and interactive bits won't work). This is intentional -- we want to make sure that we're not sending extra stuff to the front end since our goal is to respect the end user's data consumption as much as possible.
 
 ## Introduction
 
@@ -55,7 +67,7 @@ If I ever make it to a version 1, the path will look like this
   - Given `.md` and `.svelte` files in a `./content` directory, and a `./frontend/templates/Page.svelte` file, create a `GET /xxx.html` path in express
   - Reload server whenever a file changes
 - [x] 2. Make a basic Readme
-- [ ] 3. Build
+- [x] 3. Build
   - Given `.md` and `.svelte` files in a `./content` directory, and a `./frontend/templates/Page.svelte` file, create a `xxx.html` file in the `/build` directory ready to be published
 - [ ] 4. Customization of individual page using frontmatter
   - Generate Excerpt
