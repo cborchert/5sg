@@ -42,12 +42,13 @@ const Template = require("./frontend/templates/Page.svelte").default;
 async function generateContent(handleContent) {
   // for each md and each svelte file in ./content create a page
   const contentFiles = getFiles("./content", ["md", "svelte"]);
-
+  console.log(`Content nodes found: ${contentFiles.length}`);
+  console.log(`Building html for nodes...`);
   contentFiles.forEach((file) => {
     try {
       // get the path for the page
       // e.g. ./content/path/to/myPage.md => ./build/path/to/myPage.html
-      const outputPath =
+      let outputPath =
         file
           .replace(/^\.\/content\//, "")
           .replace(/\.[^\.]*$/, "")
@@ -66,11 +67,23 @@ async function generateContent(handleContent) {
         const content = fs.readFileSync(file);
         const processed = processor.processSync(content);
         const { contents: htmlContent, data = {} } = processed;
-        const isDraft = !!(data.frontmatter && data.frontmatter.draft);
 
-        // only generate publishable content
+        // allow for unpublished drafts
+        const isDraft = !!(data.frontmatter && data.frontmatter.draft);
         publishContent = !isDraft || RENDER_DRAFTS;
 
+        // allow for custom path, properly formatted
+        const frontmatterPath =
+          data.frontmatter && data.frontmatter.path
+            ? data.frontmatter.path
+                .replace(/^\.?\//, "")
+                .replace(/\.[^\.]*$/, "")
+                .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
+                .toLowerCase() + ".html"
+            : "";
+        if (frontmatterPath) outputPath = frontmatterPath;
+
+        // only generate publishable content
         if (publishContent) {
           // inject the data and html into the template
           const { html, css, head } = Template.render({
