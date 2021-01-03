@@ -30,8 +30,11 @@ const extractSeo = () => (tree = {}, file = {}) => {
 
   // extract excerpt / description
   if (data.frontmatter && data.frontmatter.description) {
-    // use specified excerpt from front matter
+    // use specified description from front matter
     data.seo.description = data.frontmatter.description;
+  } else if (data.frontmatter && data.frontmatter.excerpt) {
+    // use specified excerpt from front matter
+    data.seo.description = data.frontmatter.excerpt;
   } else {
     // extract description from non heading text nodes
     let descriptionText = "";

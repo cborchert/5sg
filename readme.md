@@ -73,49 +73,49 @@ If I ever make it to a version 1, the path will look like this
 - [x] 2. Make a basic Readme
 - [x] 3. Build
   - Given `.md` and `.svelte` files in a `./content` directory, and a `./frontend/templates/Page.svelte` file, create a `xxx.html` file in the `/build` directory ready to be published
-- [ ] 4. Customization of individual page using frontmatter
-  - [ ] Generate Excerpt
-  - [ ] SEO
+- [x] 4. Customization of individual page using frontmatter
+  - [x] Generate Excerpt
+  - [x] SEO
   - [x] title
   - [x] Custom Paths
   - [x] Published flag
 - [ ] 5. Content Improvements
-  - Add `./static` folder which is copied over to build
-  - Relative images are copied correctly to `/build`
-  - Relative links are treated correctly
-  - Global CSS file
+  - [ ] Add `./static` folder which is copied over to build
+  - [ ] Relative images are copied correctly to `/build`
+  - [ ] Relative links are treated correctly
+  - [ ] Global CSS file
 
-**MVP ready once 1 - 4 complete**
+**MVP ready once 1 - 5 complete**
 
 - [ ] 6. Content Improvements pt. 2
-  - Add (optional) remark plugins for
-    - Emojis
-    - Katex
-    - Prism
-    - Footnotes
+  - [ ] Add (optional) remark plugins for
+    - [ ] Emojis
+    - [ ] Katex
+    - [ ] Prism
+    - [ ] Footnotes
 - [ ] 7. Allow for Multiple Templates
 - [ ] 8. Post processing of content data
-  - Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
-    - List of pages and their attributes, their links
-    - Site meta data
-  - Create tags page
-  - Create categories page
-  - Create a blog feed page
-  - Create an author's page
+  - [ ] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
+    - [ ] List of pages and their attributes, their links
+    - [ ] Site meta data
+  - [ ] Create tags page
+  - [ ] Create categories page
+  - [ ] Create a blog feed page
+  - [ ] Create an author's page
 - [ ] 9. Image Processing
   - Preprocess images using sharp and/or blurhash to create a blur up affect for images and reduce page load
 - [ ] 10. Performance
-  - Dev server be very fast and should reload the browser on save using livereload
-  - Reduce build time
-  - Reduce page footprint as much as possible
-    - Introduce a bundler and/or minimization process
-  - Use a cache to speed up consecutive builds (incremental builds)
-  - Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
+  - [ ] Dev server be very fast and should reload the browser on save using livereload
+  - [ ] Reduce build time
+  - [ ] Reduce page footprint as much as possible
+    - [ ] Introduce a bundler and/or minimization process
+  - [ ] Use a cache to speed up consecutive builds (incremental builds)
+  - [ ] Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
 - [ ] 11. Partial Hydration
-  - Allow for use of svelte beyond as a templating language using partial hydration of marked components
+  - [ ] Allow for use of svelte beyond as a templating language using partial hydration of marked components
 - [ ] 12. More research
-  - Is it any good ? What needs to change in the API before launching v1?
-- [ ] Lucky number 13: Write up docs / readme
+  - [ ] Is it any good ? What needs to change in the API before launching v1?
+- [ ] Lucky number 13: Write up docs / readme, give example usage
 
 ## Stretch goals:
 
