@@ -3,7 +3,7 @@
 
     export let data = {};
     const frontmatter = data.frontmatter || {};
-    const { title: htmlTitle } = frontmatter;
+    const { title: metaTitle, description: metaDescription } = data.seo || {};
 </script>
 
 <style>
@@ -21,7 +21,8 @@
 </style>
 
 <svelte:head>
-    <title>{htmlTitle || ''}</title>
+    <title>{metaTitle || ''}</title>
+    <meta name="description" content={metaDescription} />
 </svelte:head>
 
 <main>

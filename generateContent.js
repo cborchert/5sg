@@ -72,16 +72,20 @@ async function generateContent(handleContent) {
         const isDraft = !!(data.frontmatter && data.frontmatter.draft);
         publishContent = !isDraft || RENDER_DRAFTS;
 
-        // allow for custom path, properly formatted
-        const frontmatterPath =
-          data.frontmatter && data.frontmatter.path
-            ? data.frontmatter.path
-                .replace(/^\.?\//, "")
-                .replace(/\.[^\.]*$/, "")
-                .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
-                .toLowerCase() + ".html"
-            : "";
-        if (frontmatterPath) outputPath = frontmatterPath;
+        // allow for custom path, properly formatted, retrieved from path, permalink, slug, or route in the frontmatter
+        let frontmatterPath = data.frontmatter
+          ? data.frontmatter.permalink ||
+            data.frontmatter.path ||
+            data.frontmatter.route ||
+            data.frontmatter.slug
+          : "";
+        if (frontmatterPath)
+          outputPath =
+            frontmatterPath
+              .replace(/^\.?\//, "")
+              .replace(/\.[^\.]*$/, "")
+              .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
+              .toLowerCase() + ".html";
 
         // only generate publishable content
         if (publishContent) {

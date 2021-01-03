@@ -115,6 +115,7 @@ If I ever make it to a version 1, the path will look like this
   - Allow for use of svelte beyond as a templating language using partial hydration of marked components
 - [ ] 12. More research
   - Is it any good ? What needs to change in the API before launching v1?
+- [ ] Lucky number 13: Write up docs / readme
 
 ## Stretch goals:
 
@@ -128,3 +129,33 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | ---------- | ------- | ----- |
 | 2 jan 2021 | 02c3b91 | 4.12s |
 | 2 jan 2021 | 1932e2d | 3.98s |
+
+## API Notes
+
+### Generating page data and metadata in markdown files
+
+Markdown is processed and transformed in `/utils/processor`.
+
+#### SEO
+
+In `/utils/processor`, a `data.seo` node is added to the markdown data.
+
+The **title** (`data.seo.title`) is either taken from `frontmatter.title` or generated automatically from the first heading element in the markdown file (i.e. h1, h2, h3...). Yep, if you're silly enough to put an h5 at the top of your page, and not to put a title in the frontmatter, well, you get what you paid for.
+
+The **metadescription** (`data.seo.description`) is either taken from `frontmatter.description`, `frontmatter.extract` (in that order), or generated automatically from the first 250 characters of the non-header text of the markdown file.
+
+#### Permalinks
+
+Permalinks are generated in `/generateContent`. The order of priority is:
+
+- the value of `frontmatter.permalink`, if it exists
+- the value of `frontmatter.path`, if it exists
+- the value of `frontmatter.route`, if it exists
+- the value of `frontmatter.slug`, if it exists
+- the path of the file in the `/content` folder
+
+Once obtained, the permalink is sanitized:
+
+- Only alpha numeric characters, plus \_ and - are allowed (the rest are removed. Désolé les français, mais les-franc-maçons.md deviendra les-franc-maons.html 🤷‍♀️.)
+- The permalink is transformed to lowercase
+- We replace the extension with `.html`
