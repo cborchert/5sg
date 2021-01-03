@@ -120,6 +120,7 @@ If I ever make it to a version 1, the path will look like this
 ## Stretch goals:
 
 - Support MDX style components for svelte ([MDSvex](https://mdsvex.com/))
+- Support wiki-style links and images (as used in Roam Research and Obsidian, e.g. `[[My Page Name]]`, `![[My Image.jpg]]`)
 
 ## Build Times
 
