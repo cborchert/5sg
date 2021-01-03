@@ -4,5 +4,6 @@ yarn.lock
 
 content/*
 content*/*
+static/*
 
 **/.DS_Store

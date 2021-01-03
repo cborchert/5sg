@@ -21,7 +21,7 @@
   "scripts": {
     "build": "node build.js OUTPUT_LEVEL=2",
     "build:quiet": "node build.js OUTPUT_LEVEL=0",
-    "dev": "nodemon dev.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg OUTPUT_LEVEL=2",
-    "dev:quiet": "nodemon dev.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg OUPUT_LEVEL=0"
+    "dev": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg OUTPUT_LEVEL=2 DEV=1",
+    "dev:quiet": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg OUPUT_LEVEL=0 DEV=1"
   }
 }
