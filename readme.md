@@ -127,12 +127,13 @@ If I ever make it to a version 1, the path will look like this
 
 For the sake of benchmarking, I've loaded ~1000 local content files of real content. As I work on this project, I'll run `yarn build:quiet` to keep track of the build speed. The end goal for v1 is to be at least as fast as a similar site using Gatsby or Hugo.
 
-| Date       | Commit  | time  | description         |
-| ---------- | ------- | ----- | ------------------- |
-| 2 jan 2021 | 02c3b91 | 4.12s |                     |
-| 2 jan 2021 | 1932e2d | 3.98s |                     |
-| 3 jan 2021 | 41ad3ca | 3.81s |                     |
-| 4 jan 2021 |         | 5.76s | with relative links |
+| Date       | Commit  | time  | description               |
+| ---------- | ------- | ----- | ------------------------- |
+| 2 jan 2021 | 02c3b91 | 4.12s |                           |
+| 2 jan 2021 | 1932e2d | 3.98s |                           |
+| 3 jan 2021 | 41ad3ca | 3.81s |                           |
+| 4 jan 2021 | 52ec0c7 | 5.76s | with relative links       |
+| 4 jan 2021 | 712b329 | 5.40s | with basic image handling |
 
 ## API Notes
 

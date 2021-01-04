@@ -9,7 +9,8 @@ const args = Object.fromEntries(
 );
 
 const RENDER_DRAFTS = !!args.RENDER_DRAFTS;
-const CONTENT_DIR = "./content";
+const CONTENT_DIR = "../content";
+const BASE_DIR = "../";
 
 ///////////////
 // Reporting //
@@ -30,28 +31,30 @@ console.log("Generating content...");
 require("svelte/register");
 
 // import local utils
-const generateHtml = require("./utils/generateHtml");
-const getFiles = require("./utils/getFiles.js");
-const processor = require("./utils/processor.js");
-const postProcessor = require("./utils/postProcessor.js");
+const generateHtml = require("./generateHtml");
+const getFiles = require("./getFiles.js");
+const processor = require("./processor.js");
+const postProcessor = require("./postProcessor.js");
 
 // load the Svelte template component used to create a page
-const Template = require("./frontend/templates/Page.svelte").default;
+const Template = require("../frontend/templates/Page.svelte").default;
 
 /**
  *
  * @param {Function} handleContent
  */
-async function generateContent(handleContent) {
+async function generateContent(handleContent, processImage) {
   // for each md and each svelte file in ./content create a page
 
   const contentDir = path.join(__dirname, CONTENT_DIR);
+  const baseDir = path.join(__dirname, BASE_DIR);
   const contentFiles = getFiles(contentDir, ["md", "svelte"]);
   console.log(`Content nodes found: ${contentFiles.length}`);
   console.log(`Building html for nodes...`);
 
   const nodes = {};
   const nodeMap = {};
+  const imageMap = {};
 
   // PREPROCESSING
   contentFiles.forEach((file) => {
@@ -168,7 +171,9 @@ async function generateContent(handleContent) {
               path: outputPath,
               contents: initialContent,
               cwd: contentDir,
+              baseDir,
               nodeMap,
+              imageMap,
             })
           );
           const { contents: finalContent } = processed;
@@ -193,6 +198,11 @@ async function generateContent(handleContent) {
       }
     }
   );
+
+  // process images
+  Object.entries(imageMap).forEach(([originalPath, outputPath]) => {
+    processImage({ originalPath, outputPath });
+  });
 }
 
 module.exports = generateContent;

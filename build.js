@@ -3,7 +3,7 @@ const path = require("path");
 const process = require("process");
 const rimraf = require("rimraf");
 
-const generateContent = require("./generateContent.js");
+const generateContent = require("./utils/generateContent.js");
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((argument) => argument.split("="))
@@ -31,8 +31,9 @@ try {
  * Write given content to build path
  */
 const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
-  const finalPath = `./build/${outputPath}`;
+  const finalPath = `./build/${outputPath.replace(/^\//, "")}`;
 
+  // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
   if (!fs.existsSync(outputDirectory)) {
     fs.mkdirSync(outputDirectory, { recursive: true }, (err) => {
@@ -40,6 +41,7 @@ const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
       throw err;
     });
   }
+
   // write content to file
   fs.writeFile(finalPath, pageContent, (err) => {
     // errors will be caught below
@@ -53,7 +55,33 @@ const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
   });
 };
 
-generateContent(writeFinalContent);
+/**
+ * given an original image, write to the output path
+ * TODO: Add processing. We're just copying for now
+ */
+const processImage = ({ originalPath, outputPath }) => {
+  const finalPath = `./build/${outputPath}`;
+
+  // create directory if necessary
+  const outputDirectory = path.dirname(finalPath);
+  if (!fs.existsSync(outputDirectory)) {
+    fs.mkdirSync(outputDirectory, { recursive: true }, (err) => {
+      // errors will be caught below
+      throw err;
+    });
+  }
+
+  if (fs.existsSync(originalPath)) {
+    if (!fs.existsSync(finalPath)) {
+      // do not overwrite -- it's a worthless operation
+      fs.copy(originalPath, finalPath);
+    }
+  } else {
+    console.error(`Error while copying ${originalPath}.`);
+  }
+};
+
+generateContent(writeFinalContent, processImage);
 
 // If the dev flag was given,
 if (isDev) {
