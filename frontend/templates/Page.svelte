@@ -13,6 +13,10 @@
         background: #eee;
     }
 
+    :global(img) {
+        max-width: 100%;
+    }
+
     main {
         max-width: 1024px;
         margin: 0 auto;

@@ -113,6 +113,11 @@ If I ever make it to a version 1, the path will look like this
     - [ ] Introduce a bundler and/or minimization process
   - [ ] Use a cache to speed up consecutive builds (incremental builds)
   - [ ] Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
+  - [ ] Properly hande images:
+    - [ ] Use next-gen formats with fallbacks
+    - [ ] Make sure to correctly size images
+    - [ ] Make sure to correctly encode images
+    - [ ] Set image width and height attribute
 - [ ] 11. Partial Hydration
   - [ ] Allow for use of svelte beyond as a templating language using partial hydration of marked components
 - [ ] 12. More research
