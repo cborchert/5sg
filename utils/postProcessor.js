@@ -22,7 +22,7 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
   }
 
   // get relative path
-  const relDirname = dirname.replace(cwd, "");
+  const relDirname = dirname.replace(cwd, "/");
 
   visit(tree, { tagName: "a" }, ({ properties }) => {
     let { href } = properties;

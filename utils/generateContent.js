@@ -165,10 +165,11 @@ async function generateContent(handleContent, processImage) {
       // only publish publishable content
       if (publishContent) {
         try {
+          // console.log(originalPath, outputPath);
           // post process
           const processed = postProcessor.processSync(
             vfile({
-              path: outputPath,
+              path: originalPath,
               contents: initialContent,
               cwd: contentDir,
               baseDir,
