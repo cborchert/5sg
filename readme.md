@@ -26,6 +26,8 @@ Calm down. Breath. This is normal (for now).
 
 While partial hydration of svelte components is on the roadmap, svelte components are not yet being hydrated (so click handlers and interactive bits won't work). This is intentional -- we want to make sure that we're not sending extra stuff to the front end since our goal is to respect the end user's data consumption as much as possible.
 
+For the moment, this means svelte files should be treated as PRESENTATIONAL components, or templates, if you will.
+
 ## Introduction
 
 5SG (working title) is a static site generator boiler plate made for simplicity. It works like this:
@@ -83,12 +85,15 @@ If I ever make it to a version 1, the path will look like this
   - [x] Add `./static` folder which is copied over to build
   - [x] Relative images are copied correctly to `/build`
   - [x] Relative links are treated correctly
-  - [ ] Global CSS file
+  - [x] Global CSS file
+  - [x] Global Scripts file
 
-**MVP ready once 1 - 5 complete**
+**POC ready once 1 - 5 complete**
+
+Once the first five tasks are complete, we should do a little refactor and present an example site
 
 - [ ] 6. Content Improvements pt. 2
-  - [ ] Add (optional) remark plugins for
+  - [ ] Add (optional) remark/rehype plugins for
     - [ ] Emojis
     - [ ] Katex
     - [ ] Prism
@@ -142,6 +147,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 4 jan 2021 | 52ec0c7 | 5.76s | with relative links       |
 | 4 jan 2021 | d15eb8d | 5.40s | with basic image handling |
 | 4 jan 2021 | 02c6e02 | 5.57s | with sharp image handling |
+| 4 jan 2021 | 06f5e49 | 5.63s | with global includes      |
 
 ## API Notes
 
