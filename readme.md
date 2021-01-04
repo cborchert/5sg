@@ -79,10 +79,10 @@ If I ever make it to a version 1, the path will look like this
   - [x] title
   - [x] Custom Paths
   - [x] Published flag
-- [ ] 5. Content Improvements
-  - [ ] Add `./static` folder which is copied over to build
-  - [ ] Relative images are copied correctly to `/build`
-  - [ ] Relative links are treated correctly
+- [x] 5. Content Improvements
+  - [x] Add `./static` folder which is copied over to build
+  - [x] Relative images are copied correctly to `/build`
+  - [x] Relative links are treated correctly
   - [ ] Global CSS file
 
 **MVP ready once 1 - 5 complete**
@@ -103,7 +103,9 @@ If I ever make it to a version 1, the path will look like this
   - [ ] Create a blog feed page
   - [ ] Create an author's page
 - [ ] 9. Image Processing
-  - Preprocess images using sharp and/or blurhash to create a blur up affect for images and reduce page load
+  - [x] Preprocess images using sharp
+  - [ ] use sharp or blurhash to create several image sizes
+  - [ ] implement blur up affect for images and reduce page load
 - [ ] 10. Performance
   - [ ] Dev server be very fast and should reload the browser on save using livereload
   - [ ] Reduce build time
@@ -134,7 +136,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 3 jan 2021 | 41ad3ca | 3.81s |                           |
 | 4 jan 2021 | 52ec0c7 | 5.76s | with relative links       |
 | 4 jan 2021 | d15eb8d | 5.40s | with basic image handling |
-| 4 jan 2021 |         | 5.57s | with sharp image handling |
+| 4 jan 2021 | 02c6e02 | 5.57s | with sharp image handling |
 
 ## API Notes
 
