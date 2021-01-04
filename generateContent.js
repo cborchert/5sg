@@ -1,6 +1,7 @@
 const process = require("process");
 const fs = require("fs");
 const path = require("path");
+const vfile = require("vfile");
 
 // Handle arguments
 const args = Object.fromEntries(
@@ -8,6 +9,7 @@ const args = Object.fromEntries(
 );
 
 const RENDER_DRAFTS = !!args.RENDER_DRAFTS;
+const CONTENT_DIR = "./content";
 
 ///////////////
 // Reporting //
@@ -31,6 +33,7 @@ require("svelte/register");
 const generateHtml = require("./utils/generateHtml");
 const getFiles = require("./utils/getFiles.js");
 const processor = require("./utils/processor.js");
+const postProcessor = require("./utils/postProcessor.js");
 
 // load the Svelte template component used to create a page
 const Template = require("./frontend/templates/Page.svelte").default;
@@ -41,16 +44,24 @@ const Template = require("./frontend/templates/Page.svelte").default;
  */
 async function generateContent(handleContent) {
   // for each md and each svelte file in ./content create a page
-  const contentFiles = getFiles("./content", ["md", "svelte"]);
+
+  const contentDir = path.join(__dirname, CONTENT_DIR);
+  const contentFiles = getFiles(contentDir, ["md", "svelte"]);
   console.log(`Content nodes found: ${contentFiles.length}`);
   console.log(`Building html for nodes...`);
+
+  const nodes = {};
+  const nodeMap = {};
+
+  // PREPROCESSING
   contentFiles.forEach((file) => {
     try {
       // get the path for the page
       // e.g. ./content/path/to/myPage.md => ./build/path/to/myPage.html
+      const relPath = file.replace(contentDir, "");
+
       let outputPath =
-        file
-          .replace(/^\.\/content\//, "")
+        relPath
           .replace(/\.[^\.]*$/, "")
           .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
           .toLowerCase() + ".html";
@@ -65,7 +76,13 @@ async function generateContent(handleContent) {
 
         // convert the file's text into html
         const content = fs.readFileSync(file);
-        const processed = processor.processSync(content);
+        const processed = processor.processSync(
+          vfile({
+            path: file,
+            contents: content,
+            cwd: contentDir,
+          })
+        );
         const { contents: htmlContent, data = {} } = processed;
 
         // allow for unpublished drafts
@@ -110,26 +127,72 @@ async function generateContent(handleContent) {
         }
       }
 
-      // only publish publishable content
-      if (publishContent) {
-        handleContent({
-          outputPath,
-          pageContent,
-          onSuccess: (finalPath) => {
-            log(`Created the page for ${file} at ${finalPath}`);
-          },
-        });
-      }
+      // TODO: look into saving content in a cache.
+      //  Storing in working memory will probably be too taxing for large number of files...
+      //  the disadvantage is that more i/o ops will slow things down... to verify
+      nodes[file] = {
+        outputPath,
+        pageContent,
+        fileExtension,
+        publishContent,
+      };
+      nodeMap[relPath] = outputPath;
     } catch (err) {
       error(
-        `======================\nERROR CREATING PAGE:\n----------------------\n`
+        `======================\nERROR PREPROCESSING PAGE:\n----------------------\n`
       );
       error(err);
       error(
-        `\n----------------------\nThe above error was encountered while creating the page for ${file}\n======================\n`
+        `\n----------------------\nThe above error was encountered while preprocessing the page for ${file}\n======================\n`
       );
     }
   });
+
+  // post process / publish
+  Object.entries(nodes).forEach(
+    ([
+      originalPath,
+      {
+        outputPath,
+        pageContent: initialContent,
+        fileExtension,
+        publishContent,
+      },
+    ]) => {
+      // only publish publishable content
+      if (publishContent) {
+        try {
+          // post process
+          const processed = postProcessor.processSync(
+            vfile({
+              path: outputPath,
+              contents: initialContent,
+              cwd: contentDir,
+              nodeMap,
+            })
+          );
+          const { contents: finalContent } = processed;
+
+          // publish
+          handleContent({
+            outputPath,
+            pageContent: finalContent,
+            onSuccess: (finalPath) => {
+              log(`Created the page for ${originalPath} at ${finalPath}`);
+            },
+          });
+        } catch (err) {
+          error(
+            `======================\nERROR CREATING PAGE:\n----------------------\n`
+          );
+          error(err);
+          error(
+            `\n----------------------\nThe above error was encountered while creating the page for ${originalPath}\n======================\n`
+          );
+        }
+      }
+    }
+  );
 }
 
 module.exports = generateContent;

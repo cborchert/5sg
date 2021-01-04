@@ -2,10 +2,14 @@ const remark = require("remark");
 const find = require("unist-util-find");
 const visit = require("unist-util-visit");
 const filter = require("unist-util-filter");
+const path = require("path");
 
 const EXTRACT_LIMIT = 250;
 
-// see https://unifiedjs.com/learn/guide/create-a-plugin/
+/**
+ * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
 const extractSeo = () => (tree = {}, file = {}) => {
   const { data = {} } = file;
 
@@ -56,6 +60,35 @@ const extractSeo = () => (tree = {}, file = {}) => {
     }
     data.seo.description = descriptionText;
   }
+};
+
+/**
+ * A remark plugin replace relative links with absolute links
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const replaceRelativeLinks = () => (tree = {}, file = {}) => {
+  // get relative path of file
+  // (assuming we've set the cwd and path correctly in the generateContent)
+  const { cwd, path: filePath, dirname } = file;
+  if (!cwd || !filePath || !dirname || cwd === path) {
+    file.fail(
+      `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
+        cwd,
+        path: filePath,
+        dirname,
+      })}`
+    );
+    return;
+  }
+
+  // get relative path
+  const relDirname = dirname.replace(cwd, "");
+
+  visit(tree, "link", (node) => {
+    // replace links relative to the file with links relative to the content path
+    if ((node.url && node.url.startsWith("./")) || node.url.startsWith("../"))
+      node.url = path.join(relDirname, node.url);
+  });
 };
 
 // create a processor which will be used to parse or process a valid markdown string or file

@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const process = require("process");
 const rimraf = require("rimraf");
@@ -15,17 +15,22 @@ process.on("exit", (code) =>
   console.log("Process exit event with code: ", code)
 );
 
-// remove the previous build
+// remove the previous build and then copy the static files over
 try {
   console.log(`Removing previous build...`);
   rimraf.sync("./build/");
   console.log(`Previous build deleted.`);
+  console.log(`Copying static folder to build...`);
+  fs.copySync("./static", "./build/static");
+  console.log(`Copied.`);
 } catch (err) {
   console.error(`Error while deleting previous build.`);
   console.error(err);
 }
-
-generateContent(({ outputPath, pageContent, onSuccess }) => {
+/**
+ * Write given content to build path
+ */
+const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
   const finalPath = `./build/${outputPath}`;
 
   const outputDirectory = path.dirname(finalPath);
@@ -42,11 +47,13 @@ generateContent(({ outputPath, pageContent, onSuccess }) => {
 
     // log message
     const logPath = isDev
-      ? `http://localhost:${PORT}/${outputPath}`
+      ? `http://localhost:${PORT}/${outputPath.replace(/^\//, "")}`
       : finalPath;
     onSuccess(logPath);
   });
-});
+};
+
+generateContent(writeFinalContent);
 
 // If the dev flag was given,
 if (isDev) {
