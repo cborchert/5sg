@@ -134,6 +134,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 3 jan 2021 | 41ad3ca | 3.81s |                           |
 | 4 jan 2021 | 52ec0c7 | 5.76s | with relative links       |
 | 4 jan 2021 | d15eb8d | 5.40s | with basic image handling |
+| 4 jan 2021 |         | 5.57s | with sharp image handling |
 
 ## API Notes
 

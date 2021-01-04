@@ -2,6 +2,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const process = require("process");
 const rimraf = require("rimraf");
+const sharp = require("sharp");
 
 const generateContent = require("./utils/generateContent.js");
 
@@ -72,12 +73,21 @@ const processImage = ({ originalPath, outputPath }) => {
   }
 
   if (fs.existsSync(originalPath)) {
+    // don't try to copy images that don't exist
     if (!fs.existsSync(finalPath)) {
       // do not overwrite -- it's a worthless operation
-      fs.copy(originalPath, finalPath);
+      sharp(originalPath)
+        .resize(1200, 800, { fit: "inside" })
+        .toFile(finalPath, (err, info) => {
+          if (err) {
+            console.error(`Error while processing ${originalPath}.`);
+            console.error(err);
+          }
+          console.log(`Image processed: ${originalPath}`);
+        });
     }
   } else {
-    console.error(`Error while copying ${originalPath}.`);
+    console.error(`Error while processing ${originalPath}. Cannot find file.`);
   }
 };
 

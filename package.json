@@ -17,6 +17,7 @@
     "remark-html": "^13.0.1",
     "remark-parse-frontmatter": "^1.0.1",
     "rimraf": "^3.0.2",
+    "sharp": "^0.27.0",
     "svelte": "^3.31.0",
     "unified": "^9.2.0",
     "unist-util-filter": "^2.0.3",
