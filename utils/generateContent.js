@@ -174,6 +174,7 @@ async function generateContent(handleContent, processImage) {
               baseDir,
               nodeMap,
               imageMap,
+              processImage,
             })
           );
           const { contents: finalContent } = processed;
@@ -200,7 +201,7 @@ async function generateContent(handleContent, processImage) {
   );
 
   // process images
-  Object.entries(imageMap).forEach(([originalPath, outputPath]) => {
+  Object.entries(imageMap).forEach(([originalPath, { src: outputPath }]) => {
     processImage({ originalPath, outputPath });
   });
 }

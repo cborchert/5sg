@@ -48,7 +48,14 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
 const replaceImageLinks = () => (tree = {}, file = {}) => {
   // get relative path of file
   // (assuming we've set the cwd and path correctly in the generateContent)
-  const { cwd, path: filePath, dirname, baseDir, imageMap = {} } = file;
+  const {
+    cwd,
+    path: filePath,
+    dirname,
+    baseDir,
+    imageMap = {},
+    processImage,
+  } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
       `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
@@ -63,19 +70,40 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
   // get relative path
   const relDirname = dirname.replace(cwd, "");
 
-  visit(tree, { tagName: "img" }, ({ properties }) => {
+  visit(tree, { tagName: "img" }, async ({ properties }) => {
     let { src = "" } = properties;
-
+    let originalPath = "";
     if (src.startsWith("/")) {
       // create image map for srcs from the base directory
-      imageMap[path.join(baseDir, src)] = src;
+      if (!imageMap[path.join(baseDir, src)]) {
+        imageMap[path.join(cwd, src)] = { src };
+      }
     } else if (properties.src && /^\.?\.\//.test(properties.src)) {
       // deal with relative paths
       src = path.join(relDirname, properties.src);
-      imageMap[path.join(cwd, src)] = src;
+      originalPath = path.join(cwd, src).replace(/[^A-Za-z0-9\_\-\/\.]/g, "");
+      if (!imageMap[originalPath]) {
+        imageMap[originalPath] = { src };
+      }
     }
+
     // update the url if necessary
-    if (src !== properties.src) properties.src = src;
+    if (src !== properties.src) {
+      properties.src = src;
+    }
+
+    // make the image lazy
+    properties.loading = "lazy";
+  });
+};
+
+/**
+ * A rehype plugin to make images lazy-load
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const blurImages = () => (tree = {}, file = {}) => {
+  visit(tree, { tagName: "img" }, ({ properties }) => {
+    properties.loading = "lazy";
   });
 };
 
@@ -85,7 +113,7 @@ const postProcessor = unified()
   .use(require("rehype-parse"))
   // Replace relative links
   .use(replaceRelativeLinks)
-  // Replace image links
+  // Better images
   .use(replaceImageLinks)
   // back to HTML
   .use(require("rehype-stringify"))

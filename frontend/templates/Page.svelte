@@ -1,22 +1,11 @@
 <script>
     export let htmlContent = "";
-
     export let data = {};
     const frontmatter = data.frontmatter || {};
     const { title: metaTitle, description: metaDescription } = data.seo || {};
 </script>
 
 <style>
-    :global(body) {
-        font-family: Arial, Helvetica, sans-serif;
-        color: #333;
-        background: #eee;
-    }
-
-    :global(img) {
-        max-width: 100%;
-    }
-
     main {
         max-width: 1024px;
         margin: 0 auto;

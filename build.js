@@ -31,7 +31,7 @@ try {
 /**
  * Write given content to build path
  */
-const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
+const writeFinalContent = ({ outputPath = "", pageContent, onSuccess }) => {
   const finalPath = `./build/${outputPath.replace(/^\//, "")}`;
 
   // create directory if necessary
@@ -58,10 +58,10 @@ const writeFinalContent = ({ outputPath, pageContent, onSuccess }) => {
 
 /**
  * given an original image, write to the output path
- * TODO: Add processing. We're just copying for now
  */
-const processImage = ({ originalPath, outputPath }) => {
-  const finalPath = `./build/${outputPath}`;
+const processImage = ({ originalPath, outputPath = "" }) => {
+  console.log(outputPath);
+  const finalPath = `./build/${outputPath.replace(/^\//, "")}`;
 
   // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
@@ -78,13 +78,15 @@ const processImage = ({ originalPath, outputPath }) => {
       // do not overwrite -- it's a worthless operation
       sharp(originalPath)
         .resize(1200, 800, { fit: "inside" })
-        .toFile(finalPath, (err, info) => {
+        .toFile(finalPath)
+        .catch((err) => {
           if (err) {
             console.error(`Error while processing ${originalPath}.`);
             console.error(err);
           }
-          console.log(`Image processed: ${originalPath}`);
         });
+
+      // TODO: make small 10x10 jpg for blur up
     }
   } else {
     console.error(`Error while processing ${originalPath}. Cannot find file.`);
