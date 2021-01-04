@@ -90,7 +90,7 @@ If I ever make it to a version 1, the path will look like this
 
 **POC ready once 1 - 5 complete**
 
-Once the first five tasks are complete, we should do a little refactor and present an example site
+Once the first five tasks are complete, we should do a little refactor and present an example site/project. Also this would be a good time to think about including prettier, putting config in an easy to access place, etc.
 
 - [ ] 6. Content Improvements pt. 2
   - [ ] Add (optional) remark/rehype plugins for
