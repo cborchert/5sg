@@ -10,7 +10,7 @@ function getFiles(inDir, ext) {
   let files = [];
   if (!ext) return files;
   fs.readdirSync(inDir).forEach((file) => {
-    const absPath = `${inDir}/${file}`;
+    const absPath = path.join(inDir, file);
     const fileExtension = path.extname(file).toLowerCase().replace('.', '');
     if (fs.statSync(absPath).isDirectory()) {
       // if the given "file" is a directory, get its files and add them to the list

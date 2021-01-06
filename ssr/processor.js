@@ -2,8 +2,11 @@ const remark = require('remark');
 const find = require('unist-util-find');
 const visit = require('unist-util-visit');
 const filter = require('unist-util-filter');
+const frontmatter = require('remark-frontmatter');
+const parseFrontmatter = require('remark-parse-frontmatter');
+const html = require('remark-html');
 
-const EXTRACT_LIMIT = 250;
+const { EXTRACT_LIMIT } = require('./constants.js');
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
@@ -62,11 +65,6 @@ const extractSeo = () => (tree = {}, file = {}) => {
 };
 
 // create a processor which will be used to parse or process a valid markdown string or file
-const processor = remark()
-  .use(require('remark-frontmatter'))
-  .use(require('remark-parse-frontmatter'))
-  .use(extractSeo)
-  .use(require('remark-html'))
-  .freeze();
+const processor = remark().use(frontmatter).use(parseFrontmatter).use(extractSeo).use(html).freeze();
 
 module.exports = processor;

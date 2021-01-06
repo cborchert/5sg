@@ -1,36 +1,11 @@
-/* eslint-disable no-console */
+// allows us to import svelte files directly in node without transpilation / bundling
+require('svelte/register');
 
-const process = require('process');
 const fs = require('fs');
 const path = require('path');
 const vfile = require('vfile');
-
-// Handle arguments
-const args = Object.fromEntries(process.argv.slice(2).map((argument) => argument.split('=')));
-
-const RENDER_DRAFTS = !!args.RENDER_DRAFTS;
-const CONTENT_DIR = '../content';
-const BASE_DIR = '../';
-
-/**
- * REPORTING
- */
-
-/**
- * OUTPUT_LEVEL determines what is logged to the terminal during the build
- * 0 === none
- * 1 === errors only
- * 2 === all
- * default value of 1
- */
-const OUTPUT_LEVEL = args.OUTPUT_LEVEL ? Number(args.OUTPUT_LEVEL) : 1;
-const error = OUTPUT_LEVEL > 0 ? console.error : () => {};
-const log = OUTPUT_LEVEL >= 2 ? console.log : () => {};
-
-console.log('Generating content...');
-
-// allows us to import svelte files directly in node without transpilation / bundling
-require('svelte/register');
+const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
+const { log, error, forceLog } = require('./util/reporting.js');
 
 // import local utils
 const generateHtml = require('./generateHtml');
@@ -41,6 +16,8 @@ const postProcessor = require('./postProcessor.js');
 // load the Svelte template component used to create a page
 const Template = require('../frontend/templates/Page.svelte').default;
 
+forceLog('Generating content...');
+
 /**
  *
  * @param {Function} handleContent
@@ -48,11 +25,9 @@ const Template = require('../frontend/templates/Page.svelte').default;
 async function generateContent(handleContent, processImage) {
   // for each md and each svelte file in ./content create a page
 
-  const contentDir = path.join(__dirname, CONTENT_DIR);
-  const baseDir = path.join(__dirname, BASE_DIR);
-  const contentFiles = getFiles(contentDir, ['md', 'svelte']);
-  console.log(`Content nodes found: ${contentFiles.length}`);
-  console.log(`Building html for nodes...`);
+  const contentFiles = getFiles(CONTENT_DIR, ['md', 'svelte']);
+  forceLog(`Content nodes found: ${contentFiles.length}`);
+  forceLog(`Building html for nodes...`);
 
   const nodes = {};
   const nodeMap = {};
@@ -63,7 +38,7 @@ async function generateContent(handleContent, processImage) {
     try {
       // get the path for the page
       // e.g. ./content/path/to/myPage.md => ./build/path/to/myPage.html
-      const relPath = file.replace(contentDir, '');
+      const relPath = file.replace(CONTENT_DIR, '');
 
       let outputPathBase = relPath
         .replace(/\.[^.]*$/, '')
@@ -85,7 +60,7 @@ async function generateContent(handleContent, processImage) {
           vfile({
             path: file,
             contents: content,
-            cwd: contentDir,
+            cwd: CONTENT_DIR,
           }),
         );
         const { contents: htmlContent, data = {} } = processed;
@@ -104,7 +79,7 @@ async function generateContent(handleContent, processImage) {
             .replace(/\.[^.]*$/, '')
             .replace(/[^A-Za-z0-9_\-/.]/g, '')
             .toLowerCase();
-        outputPath = `${outputPath}.html`;
+        outputPath = `${outputPathBase}.html`;
 
         // only generate publishable content
         if (publishContent) {
@@ -132,6 +107,11 @@ async function generateContent(handleContent, processImage) {
         }
       }
 
+      // add beginning slash to output path
+      if (!outputPath.startsWith('/')) {
+        outputPath = `/${outputPath}`;
+      }
+
       // TODO: look into saving content in a cache.
       //  Storing in working memory will probably be too taxing for large number of files...
       //  the disadvantage is that more i/o ops will slow things down... to verify
@@ -141,7 +121,14 @@ async function generateContent(handleContent, processImage) {
         fileExtension,
         publishContent,
       };
+      // add to nodeMap for lookups
       nodeMap[relPath] = outputPath;
+      // allow both links starting with / and without /
+      if (!relPath.startsWith('/')) {
+        nodeMap[`/${relPath}`] = outputPath;
+      } else {
+        nodeMap[relPath.replace(/^\//, '')] = outputPath;
+      }
     } catch (err) {
       error(`======================\nERROR PREPROCESSING PAGE:\n----------------------\n`);
       error(err);
@@ -156,14 +143,13 @@ async function generateContent(handleContent, processImage) {
     // only publish publishable content
     if (publishContent) {
       try {
-        // console.log(originalPath, outputPath);
+        // forceLog(originalPath, outputPath);
         // post process
         const processed = postProcessor.processSync(
           vfile({
             path: originalPath,
             contents: initialContent,
-            cwd: contentDir,
-            baseDir,
+            cwd: CONTENT_DIR,
             nodeMap,
             imageMap,
             processImage,

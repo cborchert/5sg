@@ -1,6 +1,8 @@
 const unified = require('unified');
 const visit = require('unist-util-visit');
 const path = require('path');
+const rehypeParse = require('rehype-parse');
+const rehypeStringify = require('rehype-stringify');
 
 /**
  * A rehype plugin to replace relative links with absolute links
@@ -21,8 +23,8 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     return;
   }
 
-  // get relative path
-  const relDirname = dirname.replace(cwd, '/');
+  // get relative path (removing trailing slash from cwd)
+  const relDirname = dirname.replace(cwd.replace(/\/$/, ''), '');
 
   visit(tree, { tagName: 'a' }, ({ properties }) => {
     // We are resassigning a param variables, which is normally a bad practice,
@@ -30,13 +32,17 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     /* eslint-disable no-param-reassign */
     let { href } = properties;
 
-    // replace relative urls with urls beginning with a /
-    // e.g. ../index.md in content/sub/sub2/test.md becomes /sub/index.md
-    // e.g. ./index.md in content/sub/sub2/test.md becomes /sub/sub2/index.md
-    if (properties.href && /^\.?\.\//.test(properties.href)) href = path.join(relDirname, properties.href);
+    // replace relative urls with urls relative to the output folder
+    // e.g. ../index.md in content/sub/sub2/test.md becomes sub/index.md
+    // e.g. ./index.md in content/sub/sub2/test.md becomes sub/sub2/index.md
+    if (properties.href && /^\.?\.\//.test(properties.href)) {
+      href = path.join(relDirname, properties.href).replace(/^\//, '');
+    }
 
     // if the url exists in the map, use final url from the map
-    if (nodeMap[href]) href = nodeMap[href];
+    if (nodeMap[href]) {
+      href = nodeMap[href];
+    }
 
     // update the url
     if (href !== properties.href) properties.href = href;
@@ -51,7 +57,7 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
 const replaceImageLinks = () => (tree = {}, file = {}) => {
   // get relative path of file
   // (assuming we've set the cwd and path correctly in the generateContent)
-  const { cwd, path: filePath, dirname, baseDir, imageMap = {} } = file;
+  const { cwd, path: filePath, dirname, imageMap = {} } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
       `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
@@ -63,8 +69,8 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
     return;
   }
 
-  // get relative path
-  const relDirname = dirname.replace(cwd, '');
+  // get relative path (removing trailing slash from cwd)
+  const relDirname = dirname.replace(cwd.replace(/\/$/, ''), '');
 
   visit(tree, { tagName: 'img' }, async ({ properties }) => {
     // We are resassigning a param variables, which is normally a bad practice,
@@ -75,8 +81,10 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
     let originalPath = '';
     if (src.startsWith('/')) {
       // create image map for srcs from the base directory
-      if (!imageMap[path.join(baseDir, src)]) {
-        imageMap[path.join(cwd, src)] = { src };
+      // in this case, the src is used directly as the key
+      originalPath = path.join(cwd, src);
+      if (!imageMap[originalPath]) {
+        imageMap[originalPath] = { src };
       }
     } else if (properties.src && /^\.?\.\//.test(properties.src)) {
       // deal with relative paths
@@ -101,13 +109,13 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
 // create a processor which will be used to parse or process a valid markdown string or file
 const postProcessor = unified()
   // HTML to AST
-  .use(require('rehype-parse'))
+  .use(rehypeParse)
   // Replace relative links
   .use(replaceRelativeLinks)
   // Better images
   .use(replaceImageLinks)
   // back to HTML
-  .use(require('rehype-stringify'))
+  .use(rehypeStringify)
   // TODO: minify the html (build only, this adds a few seconds to build time)
   // .use(require("rehype-preset-minify"))
   .freeze();
