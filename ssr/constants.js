@@ -8,7 +8,8 @@ const path = require('path');
 const processArgMap = Object.fromEntries(process.argv.slice(2).map((argument) => argument.split('=')));
 
 // If IS_DEV, then we launch an express server on the designated PORT to serve the static files
-const IS_DEV = !!processArgMap.DEV || process.env.NODE_ENV !== 'production';
+const IS_DEV =
+  !!processArgMap.DEV || (typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV !== 'production');
 const PORT = process.env.PORT || 3000;
 
 /**
