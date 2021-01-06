@@ -1,43 +1,45 @@
-const process = require("process");
-const fs = require("fs");
-const path = require("path");
-const vfile = require("vfile");
+/* eslint-disable no-console */
+
+const process = require('process');
+const fs = require('fs');
+const path = require('path');
+const vfile = require('vfile');
 
 // Handle arguments
-const args = Object.fromEntries(
-  process.argv.slice(2).map((argument) => argument.split("="))
-);
+const args = Object.fromEntries(process.argv.slice(2).map((argument) => argument.split('=')));
 
 const RENDER_DRAFTS = !!args.RENDER_DRAFTS;
-const CONTENT_DIR = "../content";
-const BASE_DIR = "../";
+const CONTENT_DIR = '../content';
+const BASE_DIR = '../';
 
-///////////////
-// Reporting //
-///////////////
+/**
+ * REPORTING
+ */
 
-// OUTPUT_LEVEL determines what is logged to the terminal during the build
-// 0 === none
-// 1 === errors only
-// 2 === all
-// default value of 1
+/**
+ * OUTPUT_LEVEL determines what is logged to the terminal during the build
+ * 0 === none
+ * 1 === errors only
+ * 2 === all
+ * default value of 1
+ */
 const OUTPUT_LEVEL = args.OUTPUT_LEVEL ? Number(args.OUTPUT_LEVEL) : 1;
 const error = OUTPUT_LEVEL > 0 ? console.error : () => {};
 const log = OUTPUT_LEVEL >= 2 ? console.log : () => {};
 
-console.log("Generating content...");
+console.log('Generating content...');
 
 // allows us to import svelte files directly in node without transpilation / bundling
-require("svelte/register");
+require('svelte/register');
 
 // import local utils
-const generateHtml = require("./generateHtml");
-const getFiles = require("./getFiles.js");
-const processor = require("./processor.js");
-const postProcessor = require("./postProcessor.js");
+const generateHtml = require('./generateHtml');
+const getFiles = require('./getFiles.js');
+const processor = require('./processor.js');
+const postProcessor = require('./postProcessor.js');
 
 // load the Svelte template component used to create a page
-const Template = require("../frontend/templates/Page.svelte").default;
+const Template = require('../frontend/templates/Page.svelte').default;
 
 /**
  *
@@ -48,7 +50,7 @@ async function generateContent(handleContent, processImage) {
 
   const contentDir = path.join(__dirname, CONTENT_DIR);
   const baseDir = path.join(__dirname, BASE_DIR);
-  const contentFiles = getFiles(contentDir, ["md", "svelte"]);
+  const contentFiles = getFiles(contentDir, ['md', 'svelte']);
   console.log(`Content nodes found: ${contentFiles.length}`);
   console.log(`Building html for nodes...`);
 
@@ -61,20 +63,20 @@ async function generateContent(handleContent, processImage) {
     try {
       // get the path for the page
       // e.g. ./content/path/to/myPage.md => ./build/path/to/myPage.html
-      const relPath = file.replace(contentDir, "");
+      const relPath = file.replace(contentDir, '');
 
-      let outputPath =
-        relPath
-          .replace(/\.[^\.]*$/, "")
-          .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
-          .toLowerCase() + ".html";
+      let outputPathBase = relPath
+        .replace(/\.[^.]*$/, '')
+        .replace(/[^A-Za-z0-9_\-/.]/g, '')
+        .toLowerCase();
+      let outputPath = `${outputPathBase}.html`;
 
-      let pageContent = "";
+      let pageContent = '';
       let publishContent = true;
 
       const fileExtension = path.extname(file);
 
-      if (fileExtension === ".md") {
+      if (fileExtension === '.md') {
         // handle markdown
 
         // convert the file's text into html
@@ -84,7 +86,7 @@ async function generateContent(handleContent, processImage) {
             path: file,
             contents: content,
             cwd: contentDir,
-          })
+          }),
         );
         const { contents: htmlContent, data = {} } = processed;
 
@@ -93,19 +95,16 @@ async function generateContent(handleContent, processImage) {
         publishContent = !isDraft || RENDER_DRAFTS;
 
         // allow for custom path, properly formatted, retrieved from path, permalink, slug, or route in the frontmatter
-        let frontmatterPath = data.frontmatter
-          ? data.frontmatter.permalink ||
-            data.frontmatter.path ||
-            data.frontmatter.route ||
-            data.frontmatter.slug
-          : "";
+        const frontmatterPath = data.frontmatter
+          ? data.frontmatter.permalink || data.frontmatter.path || data.frontmatter.route || data.frontmatter.slug
+          : '';
         if (frontmatterPath)
-          outputPath =
-            frontmatterPath
-              .replace(/^\.?\//, "")
-              .replace(/\.[^\.]*$/, "")
-              .replace(/[^A-Za-z0-9\_\-\/\.]/g, "")
-              .toLowerCase() + ".html";
+          outputPathBase = frontmatterPath
+            .replace(/^\.?\//, '')
+            .replace(/\.[^.]*$/, '')
+            .replace(/[^A-Za-z0-9_\-/.]/g, '')
+            .toLowerCase();
+        outputPath = `${outputPath}.html`;
 
         // only generate publishable content
         if (publishContent) {
@@ -117,11 +116,14 @@ async function generateContent(handleContent, processImage) {
           });
           pageContent = generateHtml({ html, css, head });
         }
-      } else if (fileExtension === ".svelte") {
+      } else if (fileExtension === '.svelte') {
         // only generate publishable content
         if (publishContent) {
           // handle svelte
           // import the svelte file and render it
+
+          // TODO: FIXME? eslint doesn't like the import/no-dynamic-require and global-require for this line.
+          // eslint-disable-next-line
           const Page = require(file).default;
           const { html, css, head } = Page.render();
 
@@ -141,65 +143,51 @@ async function generateContent(handleContent, processImage) {
       };
       nodeMap[relPath] = outputPath;
     } catch (err) {
-      error(
-        `======================\nERROR PREPROCESSING PAGE:\n----------------------\n`
-      );
+      error(`======================\nERROR PREPROCESSING PAGE:\n----------------------\n`);
       error(err);
       error(
-        `\n----------------------\nThe above error was encountered while preprocessing the page for ${file}\n======================\n`
+        `\n----------------------\nThe above error was encountered while preprocessing the page for ${file}\n======================\n`,
       );
     }
   });
 
   // post process / publish
-  Object.entries(nodes).forEach(
-    ([
-      originalPath,
-      {
-        outputPath,
-        pageContent: initialContent,
-        fileExtension,
-        publishContent,
-      },
-    ]) => {
-      // only publish publishable content
-      if (publishContent) {
-        try {
-          // console.log(originalPath, outputPath);
-          // post process
-          const processed = postProcessor.processSync(
-            vfile({
-              path: originalPath,
-              contents: initialContent,
-              cwd: contentDir,
-              baseDir,
-              nodeMap,
-              imageMap,
-              processImage,
-            })
-          );
-          const { contents: finalContent } = processed;
+  Object.entries(nodes).forEach(([originalPath, { outputPath, pageContent: initialContent, publishContent }]) => {
+    // only publish publishable content
+    if (publishContent) {
+      try {
+        // console.log(originalPath, outputPath);
+        // post process
+        const processed = postProcessor.processSync(
+          vfile({
+            path: originalPath,
+            contents: initialContent,
+            cwd: contentDir,
+            baseDir,
+            nodeMap,
+            imageMap,
+            processImage,
+          }),
+        );
+        const { contents: finalContent } = processed;
 
-          // publish
-          handleContent({
-            outputPath,
-            pageContent: finalContent,
-            onSuccess: (finalPath) => {
-              log(`Created the page for ${originalPath} at ${finalPath}`);
-            },
-          });
-        } catch (err) {
-          error(
-            `======================\nERROR CREATING PAGE:\n----------------------\n`
-          );
-          error(err);
-          error(
-            `\n----------------------\nThe above error was encountered while creating the page for ${originalPath}\n======================\n`
-          );
-        }
+        // publish
+        handleContent({
+          outputPath,
+          pageContent: finalContent,
+          onSuccess: (finalPath) => {
+            log(`Created the page for ${originalPath} at ${finalPath}`);
+          },
+        });
+      } catch (err) {
+        error(`======================\nERROR CREATING PAGE:\n----------------------\n`);
+        error(err);
+        error(
+          `\n----------------------\nThe above error was encountered while creating the page for ${originalPath}\n======================\n`,
+        );
       }
     }
-  );
+  });
 
   // process images
   Object.entries(imageMap).forEach(([originalPath, { src: outputPath }]) => {

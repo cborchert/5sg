@@ -1,8 +1,7 @@
-const remark = require("remark");
-const find = require("unist-util-find");
-const visit = require("unist-util-visit");
-const filter = require("unist-util-filter");
-const path = require("path");
+const remark = require('remark');
+const find = require('unist-util-find');
+const visit = require('unist-util-visit');
+const filter = require('unist-util-filter');
 
 const EXTRACT_LIMIT = 250;
 
@@ -22,15 +21,15 @@ const extractSeo = () => (tree = {}, file = {}) => {
     data.seo.title = data.frontmatter.title;
   } else {
     // extract title from first heading
-    const firstHeading = find(tree, { type: "heading" });
-    let titleText = "";
+    const firstHeading = find(tree, { type: 'heading' });
+    let titleText = '';
     if (firstHeading) {
-      visit(firstHeading, "text", (node) => {
-        titleText += node.value + " ";
+      visit(firstHeading, 'text', (node) => {
+        titleText = `${titleText} ${node.value} `;
       });
     }
     // remove double spaces and terminal space
-    titleText = titleText.replace(/\s\s+/, " ").replace(/\s$/, "");
+    titleText = titleText.replace(/\s\s+/, ' ').replace(/\s$/, '');
     data.seo.title = titleText;
   }
 
@@ -43,24 +42,20 @@ const extractSeo = () => (tree = {}, file = {}) => {
     data.seo.description = data.frontmatter.excerpt;
   } else {
     // extract description from non heading text nodes
-    let descriptionText = "";
-    const yamlNode = filter(
-      tree,
-      (node) => node.type !== "heading" && node.type !== "yaml"
-    );
+    let descriptionText = '';
+    const yamlNode = filter(tree, (node) => node.type !== 'heading' && node.type !== 'yaml');
     if (yamlNode) {
-      visit(yamlNode, "text", (node) => {
-        descriptionText += node.value + " ";
+      visit(yamlNode, 'text', (node) => {
+        descriptionText = `${descriptionText} ${node.value} `;
       });
     }
 
     // remove double spaces and terminal space
-    descriptionText = descriptionText.replace(/\s\s+/, " ").replace(/\s$/, "");
+    descriptionText = descriptionText.replace(/\s\s+/, ' ').replace(/\s$/, '');
     if (descriptionText.length > EXTRACT_LIMIT) {
       // remove final characters and then add ellipses
-      descriptionText =
-        descriptionText.substr(0, EXTRACT_LIMIT).replace(/[^A-Za-z0-9]+$/, "") +
-        "...";
+      descriptionText = descriptionText.substr(0, EXTRACT_LIMIT).replace(/[^A-Za-z0-9]+$/, '');
+      descriptionText = `${descriptionText}...`;
     }
     data.seo.description = descriptionText;
   }
@@ -68,10 +63,10 @@ const extractSeo = () => (tree = {}, file = {}) => {
 
 // create a processor which will be used to parse or process a valid markdown string or file
 const processor = remark()
-  .use(require("remark-frontmatter"))
-  .use(require("remark-parse-frontmatter"))
+  .use(require('remark-frontmatter'))
+  .use(require('remark-parse-frontmatter'))
   .use(extractSeo)
-  .use(require("remark-html"))
+  .use(require('remark-html'))
   .freeze();
 
 module.exports = processor;

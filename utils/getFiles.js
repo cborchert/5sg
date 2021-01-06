@@ -1,5 +1,5 @@
-const path = require("path");
-const fs = require("fs");
+const path = require('path');
+const fs = require('fs');
 
 /**
  * Recursively gets all matching files in a directory
@@ -11,7 +11,7 @@ function getFiles(inDir, ext) {
   if (!ext) return files;
   fs.readdirSync(inDir).forEach((file) => {
     const absPath = `${inDir}/${file}`;
-    const fileExtension = path.extname(file).toLowerCase().replace(".", "");
+    const fileExtension = path.extname(file).toLowerCase().replace('.', '');
     if (fs.statSync(absPath).isDirectory()) {
       // if the given "file" is a directory, get its files and add them to the list
       files = [...files, ...getFiles(absPath, ext)];

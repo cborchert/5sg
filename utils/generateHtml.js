@@ -17,7 +17,7 @@ function generateHtml({ head, css, html }) {
         <link rel="stylesheet" href="/static/styles/global.css" />
         <script src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js"></script>
         <style>
-            ${css ? css.code : ""}
+            ${css ? css.code : ''}
         </style>
     </head>
     <body>
