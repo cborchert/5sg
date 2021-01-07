@@ -1,11 +1,11 @@
 /**
  * Generates the shell for a single page's html
  * @param {Object} param0
- * @param {string} param0.head
- * @param {object} param0.css
- * @param {string} param0.html
+ * @param {string} param0.head the rendered css
+ * @param {string} param0.styles the rendered css string
+ * @param {string} param0.html the rendered html
  */
-function generateHtml({ head, css, html }) {
+function generateHtml({ head = '', styles = '', html = '' }) {
   return `
     <!DOCTYPE html>
     <html>
@@ -17,7 +17,7 @@ function generateHtml({ head, css, html }) {
         <link rel="stylesheet" href="/static/styles/global.css" />
         <script src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js"></script>
         <style>
-            ${css ? css.code : ''}
+            ${styles}
         </style>
     </head>
     <body>

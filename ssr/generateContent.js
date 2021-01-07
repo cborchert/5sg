@@ -81,12 +81,12 @@ async function generateContent() {
         // only generate publishable content
         if (publishContent) {
           // inject the data and html into the template
-          const { html, css, head } = Template.render({
+          const { html, css: { code: styles = '' } = {}, head } = Template.render({
             htmlContent,
             data,
             isDraft,
           });
-          pageContent = generateHtml({ html, css, head });
+          pageContent = generateHtml({ html, styles, head });
         }
       } else if (fileExtension === '.svelte') {
         // only generate publishable content
@@ -97,10 +97,10 @@ async function generateContent() {
           // TODO: FIXME? eslint doesn't like the import/no-dynamic-require and global-require for this line.
           // eslint-disable-next-line
           const Page = require(file).default;
-          const { html, css, head } = Page.render();
+          const { html, css: { code: styles = '' } = {}, head } = Page.render();
 
           // inject the rendered component into the html shell template
-          pageContent = generateHtml({ html, css, head });
+          pageContent = generateHtml({ html, styles, head });
         }
       }
 
