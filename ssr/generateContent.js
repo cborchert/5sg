@@ -4,14 +4,15 @@ require('svelte/register');
 const fs = require('fs');
 const path = require('path');
 const vfile = require('vfile');
-const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
-const { log, error, forceLog } = require('./util/reporting.js');
 
 // import local utils
 const generateHtml = require('./generateHtml');
 const getFiles = require('./getFiles.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
+const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
+const { log, error, forceLog } = require('./util/reporting.js');
+const { writeContentToPath, processImage } = require('./util/io.js');
 
 // load the Svelte template component used to create a page
 const Template = require('../frontend/templates/Page.svelte').default;
@@ -19,12 +20,9 @@ const Template = require('../frontend/templates/Page.svelte').default;
 forceLog('Generating content...');
 
 /**
- *
- * @param {Function} handleContent
+ *for each md and each svelte file in ./content create a page
  */
-async function generateContent(handleContent, processImage) {
-  // for each md and each svelte file in ./content create a page
-
+async function generateContent() {
   const contentFiles = getFiles(CONTENT_DIR, ['md', 'svelte']);
   forceLog(`Content nodes found: ${contentFiles.length}`);
   forceLog(`Building html for nodes...`);
@@ -158,11 +156,15 @@ async function generateContent(handleContent, processImage) {
         const { contents: finalContent } = processed;
 
         // publish
-        handleContent({
+        writeContentToPath({
+          fileContent: finalContent,
           outputPath,
-          pageContent: finalContent,
-          onSuccess: (finalPath) => {
-            log(`Created the page for ${originalPath} at ${finalPath}`);
+          onSuccess: (logPath, finalPath) => {
+            if (finalPath !== logPath) {
+              log(`Serving the page for ${originalPath} at ${logPath}`);
+            } else {
+              log(`Created the page for ${originalPath} at ${finalPath}`);
+            }
           },
         });
       } catch (err) {
