@@ -16,9 +16,17 @@
 <svelte:head>
   <title>{metaTitle || ''}</title>
   <meta name="description" content={metaDescription} />
+  <link rel="stylesheet" href="/static/styles/normalize.css" />
+  <link rel="stylesheet" href="/static/styles/global.css" />
+  <script src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
+  </script>
 </svelte:head>
 
-<main>
-  <slot />
-  {@html htmlContent}
-</main>
+<body>
+  <main>
+    <slot />
+    {@html htmlContent}
+  </main>
+  <script src="/static/scripts/global.js">
+  </script>
+</body>

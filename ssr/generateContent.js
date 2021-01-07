@@ -6,7 +6,7 @@ const path = require('path');
 const vfile = require('vfile');
 
 // import local utils
-const generateOuterHtml = require('./generateOuterHtml');
+const generateOuterHtml = require('./util/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
