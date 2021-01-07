@@ -6,7 +6,7 @@ const path = require('path');
 const vfile = require('vfile');
 
 // import local utils
-const generateHtml = require('./generateHtml');
+const generateOuterHtml = require('./generateOuterHtml');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
@@ -86,7 +86,7 @@ async function generateContent() {
             data,
             isDraft,
           });
-          pageContent = generateHtml({ html, styles, head });
+          pageContent = generateOuterHtml({ html, styles, head });
         }
       } else if (fileExtension === '.svelte') {
         // only generate publishable content
@@ -100,7 +100,7 @@ async function generateContent() {
           const { html, css: { code: styles = '' } = {}, head } = Page.render();
 
           // inject the rendered component into the html shell template
-          pageContent = generateHtml({ html, styles, head });
+          pageContent = generateOuterHtml({ html, styles, head });
         }
       }
 

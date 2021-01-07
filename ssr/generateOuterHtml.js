@@ -5,7 +5,7 @@
  * @param {string} param0.styles the rendered css string
  * @param {string} param0.html the rendered html
  */
-function generateHtml({ head = '', styles = '', html = '' }) {
+function generateOuterHtml({ head = '', styles = '', html = '' }) {
   return `
     <!DOCTYPE html>
     <html>
@@ -28,4 +28,4 @@ function generateHtml({ head = '', styles = '', html = '' }) {
     `;
 }
 
-module.exports = generateHtml;
+module.exports = generateOuterHtml;
