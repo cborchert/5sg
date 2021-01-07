@@ -1,4 +1,7 @@
 <script>
+  import Globals from '../components/Globals.svelte';
+  import Header from '../components/Header.svelte';
+
   export let htmlContent = '';
   export let data = {};
   const frontmatter = data.frontmatter || {};
@@ -16,17 +19,13 @@
 <svelte:head>
   <title>{metaTitle || ''}</title>
   <meta name="description" content={metaDescription} />
-  <link rel="stylesheet" href="/static/styles/normalize.css" />
-  <link rel="stylesheet" href="/static/styles/global.css" />
-  <script src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
-  </script>
 </svelte:head>
 
 <body>
+  <Header />
   <main>
     <slot />
     {@html htmlContent}
   </main>
-  <script src="/static/scripts/global.js">
-  </script>
+  <Globals />
 </body>
