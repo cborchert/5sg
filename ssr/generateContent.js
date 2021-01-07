@@ -7,12 +7,11 @@ const vfile = require('vfile');
 
 // import local utils
 const generateHtml = require('./generateHtml');
-const getFiles = require('./getFiles.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
 const { log, error, forceLog } = require('./util/reporting.js');
-const { writeContentToPath, processImage } = require('./util/io.js');
+const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
 
 // load the Svelte template component used to create a page
 const Template = require('../frontend/templates/Page.svelte').default;
