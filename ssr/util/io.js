@@ -94,7 +94,7 @@ const processImage = ({ originalPath, outputPath = '' }) => {
   }
 
   sharp(originalPath)
-    .resize(1200, 800, { fit: 'inside' })
+    .resize(1200, 800, { fit: 'inside', withoutEnlargement: true })
     .toBuffer((err, buffer) => {
       // TODO: use third info parameter to deal with file info (for use such as width, height, etc. )
       if (err) {
