@@ -101,7 +101,7 @@ Once the first five tasks are complete, we should do a little refactor and prese
 - [ ] 7. Allow for Multiple Templates
 - [ ] 8. Post processing of content data
   - [ ] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
-    - [ ] List of pages and their attributes, their links
+    - [x] List of pages and their attributes, their links
     - [ ] Site meta data
   - [ ] Create tags page
   - [ ] Create categories page
@@ -117,7 +117,7 @@ Once the first five tasks are complete, we should do a little refactor and prese
   - [ ] Reduce page footprint as much as possible
     - [ ] Introduce a bundler and/or minimization process
   - [ ] Use a cache to speed up consecutive builds (incremental builds)
-  - [ ] Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
+  - [x] Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
   - [ ] Properly hande images:
     - [ ] Use next-gen formats with fallbacks
     - [ ] Make sure to correctly size images
@@ -148,6 +148,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 4 jan 2021 | d15eb8d | 5.40s | with basic image handling |
 | 4 jan 2021 | 02c6e02 | 5.57s | with sharp image handling |
 | 4 jan 2021 | 06f5e49 | 5.63s | with global includes      |
+| 8 jan 2021 | dd1b07b | 6.71s | After refactors           |
 
 ## API Notes
 
