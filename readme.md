@@ -98,7 +98,7 @@ Once the first five tasks are complete, we should do a little refactor and prese
     - [ ] Katex
     - [ ] Prism
     - [ ] Footnotes
-- [ ] 7. Allow for Multiple Templates
+- [x] 7. Allow for Multiple Templates
 - [ ] 8. Post processing of content data
   - [ ] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
     - [x] List of pages and their attributes, their links
@@ -118,13 +118,13 @@ Once the first five tasks are complete, we should do a little refactor and prese
     - [ ] Introduce a bundler and/or minimization process
   - [ ] Use a cache to speed up consecutive builds (incremental builds)
   - [x] Consider using [turbolinks](https://github.com/turbolinks/turbolinks) to give pages a SPA feel
-  - [ ] Properly hande images:
+  - [ ] Properly handle images:
     - [ ] Use next-gen formats with fallbacks
     - [ ] Make sure to correctly size images
     - [ ] Make sure to correctly encode images
     - [ ] Set image width and height attribute
 - [ ] 11. Partial Hydration
-  - [ ] Allow for use of svelte beyond as a templating language using partial hydration of marked components
+  - [ ] Allow for use of svelte beyond as a templating language using partial hydration of marked components / templates
 - [ ] 12. More research
   - [ ] Is it any good ? What needs to change in the API before launching v1?
 - [ ] Lucky number 13: Write up docs / readme, give example usage
@@ -149,6 +149,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 4 jan 2021 | 02c6e02 | 5.57s | with sharp image handling |
 | 4 jan 2021 | 06f5e49 | 5.63s | with global includes      |
 | 8 jan 2021 | dd1b07b | 6.71s | After refactors           |
+| 8 jan 2021 | 48e68af | 6.80s | Add multiple templates    |
 
 ## API Notes
 
