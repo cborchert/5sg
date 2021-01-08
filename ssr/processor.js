@@ -6,7 +6,7 @@ const frontmatter = require('remark-frontmatter');
 const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
-const { EXTRACT_LIMIT } = require('./constants.js');
+const { EXTRACT_LIMIT } = require('./util/constants.js');
 const {
   REGEX_CONSEC_SPACE,
   REGEX_TRAILING_SPACE,

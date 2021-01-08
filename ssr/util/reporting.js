@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { REPORTING_LEVEL } = require('../constants.js');
+const { REPORTING_LEVEL } = require('./constants.js');
 
 /**
  * REPORT_LEVEL determines what is logged to the terminal during the build

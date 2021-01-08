@@ -3,7 +3,7 @@ const path = require('path');
 const rimraf = require('rimraf');
 const sharp = require('sharp');
 
-const { IS_DEV, PORT, BUILD_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('../constants.js');
+const { IS_DEV, PORT, BUILD_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('./constants.js');
 const { log, error, forceLog, forceError } = require('./reporting.js');
 const { REGEX_LEADING_SLASH } = require('./strings.js');
 
