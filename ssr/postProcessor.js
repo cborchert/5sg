@@ -15,8 +15,6 @@ const {
  * see https://unifiedjs.com/learn/guide/create-a-plugin/
  */
 const replaceRelativeLinks = () => (tree = {}, file = {}) => {
-  // get relative path of file
-  // (assuming we've set the cwd and path correctly in the generateContent)
   const { cwd, path: filePath, dirname, nodeMap = {} } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
@@ -29,7 +27,7 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     return;
   }
 
-  // get relative path (removing trailing slash from cwd)
+  // get relative path of file by removing cwd from path dirname
   const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
   visit(tree, { tagName: 'a' }, ({ properties }) => {
@@ -61,8 +59,6 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
  * see https://unifiedjs.com/learn/guide/create-a-plugin/
  */
 const replaceImageLinks = () => (tree = {}, file = {}) => {
-  // get relative path of file
-  // (assuming we've set the cwd and path correctly in the generateContent)
   const { cwd, path: filePath, dirname, imageMap = {} } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
@@ -75,7 +71,7 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
     return;
   }
 
-  // get relative path (removing trailing slash from cwd)
+  // get relative path of file by removing cwd from path dirname
   const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
   visit(tree, { tagName: 'img' }, async ({ properties }) => {

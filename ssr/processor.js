@@ -11,6 +11,8 @@ const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMER
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
+ * Sets node.data.seo.title and node.data.seo.description
+ *
  * see https://unifiedjs.com/learn/guide/create-a-plugin/
  */
 const extractSeo = () => (tree = {}, file = {}) => {
@@ -19,7 +21,7 @@ const extractSeo = () => (tree = {}, file = {}) => {
   // init seo node in data
   data.seo = {};
 
-  // extract title
+  // extract title from frontmatter or content and set to data.seo.title
   if (data.frontmatter && data.frontmatter.title) {
     // use specified title from front matter
     data.seo.title = data.frontmatter.title;
@@ -37,7 +39,7 @@ const extractSeo = () => (tree = {}, file = {}) => {
     data.seo.title = titleText;
   }
 
-  // extract excerpt / description
+  // extract excerpt / description and set to data.seo.description
   if (data.frontmatter && data.frontmatter.description) {
     // use specified description from front matter
     data.seo.description = data.frontmatter.description;
