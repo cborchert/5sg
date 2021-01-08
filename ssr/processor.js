@@ -7,7 +7,15 @@ const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
 const { EXTRACT_LIMIT } = require('./constants.js');
-const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
+const {
+  REGEX_CONSEC_SPACE,
+  REGEX_TRAILING_SPACE,
+  REGEX_TRAILING_NON_ALPHA_NUMERICS,
+  REGEX_EXTENSION,
+  REGEX_INVALID_PATH_CHARS,
+  REGEX_CURR_DIR,
+  REGEX_LEADING_SLASH,
+} = require('./util/strings.js');
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
@@ -67,7 +75,72 @@ const extractSeo = () => (tree = {}, file = {}) => {
   }
 };
 
+/**
+ * A remark plugin to set node.data.draft
+ *
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const setIsDraft = () => (tree, file = {}) => {
+  const { data = {} } = file;
+
+  // init draft flag in data
+  data.draft = !!(data.frontmatter && data.frontmatter.draft);
+};
+
+/**
+ * A remark plugin to set node.data.finalPath, node.data.initialPath, and node.data.relPath, and
+ *
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const setDataPaths = () => (tree, file = {}) => {
+  const { data = {}, cwd, path: filePath } = file;
+  const relPath = filePath.replace(cwd, '');
+
+  let outputPathBase = relPath.replace(REGEX_EXTENSION, '').replace(REGEX_INVALID_PATH_CHARS, '');
+
+  // allow for custom path, properly formatted, retrieved from path, permalink, slug, or route in the frontmatter
+  const frontmatterPath = data.frontmatter
+    ? data.frontmatter.permalink || data.frontmatter.path || data.frontmatter.route || data.frontmatter.slug
+    : '';
+  if (frontmatterPath) {
+    // remove leading ./ or /, the extension, and invalid path chars
+    outputPathBase = frontmatterPath
+      .replace(REGEX_CURR_DIR, '')
+      .replace(REGEX_EXTENSION, '')
+      .replace(REGEX_INVALID_PATH_CHARS, '');
+  }
+
+  // TODO: use path package??
+  data.finalPath = `${outputPathBase}.html`;
+  data.initialPath = filePath;
+  data.relPath = relPath;
+  const lastSlash = relPath.lastIndexOf('/');
+  data.fileName = relPath
+    .substr(lastSlash === -1 ? 0 : lastSlash)
+    .replace(REGEX_EXTENSION, '')
+    .replace(REGEX_LEADING_SLASH, '');
+};
+
+/**
+ * A remark plugin to set node.data.created, node.data.modified, assuming that the info was provided using statSync
+ *
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const setFileInfo = () => (tree, file = {}) => {
+  const { data = {}, info = {} } = file;
+  data.modified = info.mtime;
+  data.created = info.birthtime;
+};
+
 // create a processor which will be used to parse or process a valid markdown string or file
-const processor = remark().use(frontmatter).use(parseFrontmatter).use(extractSeo).use(html).freeze();
+const processor = remark()
+  .use(frontmatter)
+  .use(parseFrontmatter)
+  .use(extractSeo)
+  .use(setIsDraft)
+  .use(setDataPaths)
+  .use(setFileInfo)
+  .use(html)
+  .freeze();
 
 module.exports = processor;

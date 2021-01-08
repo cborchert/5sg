@@ -13,10 +13,16 @@ const log = REPORTING_LEVEL >= 2 ? console.log : () => {};
 // for messages and errors which must always be logged
 const forceLog = console.log;
 const forceError = console.error;
+const extendedError = (reason = '', message = '') => {
+  error(`======================\nERROR ${reason.toUpperCase()}:\n----------------------\n`);
+  error(message);
+  error(`\n----------------------\nThe above error was encountered ${reason}\n======================\n`);
+};
 
 module.exports = {
   error,
   log,
   forceLog,
   forceError,
+  extendedError,
 };

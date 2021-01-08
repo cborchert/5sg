@@ -15,7 +15,7 @@ const {
  * see https://unifiedjs.com/learn/guide/create-a-plugin/
  */
 const replaceRelativeLinks = () => (tree = {}, file = {}) => {
-  const { cwd, path: filePath, dirname, nodeMap = {} } = file;
+  const { cwd, path: filePath, dirname, nodeData = {} } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
       `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
@@ -34,18 +34,23 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     // We are resassigning a param variables, which is normally a bad practice,
     // but in this case we do want side effects 🤷‍♀️
     /* eslint-disable no-param-reassign */
-    let { href } = properties;
+    let { href = '' } = properties;
 
     // replace relative urls with urls relative to the output folder
+    // remove any lead slashes
     // e.g. ../index.md in content/sub/sub2/test.md becomes sub/index.md
     // e.g. ./index.md in content/sub/sub2/test.md becomes sub/sub2/index.md
-    if (properties.href && REGEX_REL_DIR.test(properties.href)) {
-      href = path.join(relDirname, properties.href).replace(REGEX_LEADING_SLASH, '');
+    if (REGEX_REL_DIR.test(href)) {
+      href = path.join(relDirname, href);
     }
+    href = href.replace(REGEX_LEADING_SLASH, '');
 
     // if the url exists in the map, use final url from the map
-    if (nodeMap[href]) {
-      href = nodeMap[href];
+    if (nodeData[href]) {
+      href = nodeData[href].finalPath;
+    } else {
+      // non-local files should open in a new tab
+      properties.target = '_blank';
     }
 
     // update the url
@@ -85,16 +90,12 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
       // create image map for srcs from the base directory
       // in this case, the src is used directly as the key
       originalPath = path.join(cwd, src);
-      if (!imageMap[originalPath]) {
-        imageMap[originalPath] = { src };
-      }
+      imageMap[originalPath] = { src };
     } else if (properties.src && REGEX_REL_DIR.test(properties.src)) {
       // deal with relative paths
       src = path.join(relDirname, properties.src);
       originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
-      if (!imageMap[originalPath]) {
-        imageMap[originalPath] = { src };
-      }
+      imageMap[originalPath] = { src };
     }
 
     // update the url if necessary
@@ -102,7 +103,7 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
       properties.src = src;
     }
 
-    // make the image lazy
+    // make the image lazy load
     properties.loading = 'lazy';
     /* eslint-enable no-param-reassign */
   });

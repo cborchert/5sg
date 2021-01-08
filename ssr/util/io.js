@@ -45,8 +45,15 @@ function copyStaticFiles() {
  * @param {(logPath: string, finalPath: string)} param0.onSkip the skip callback
  * @throws on I/O error
  */
-const writeContentToPath = ({ fileContent, outputPath = '', onSuccess, skipIfExists, onSkip }) => {
-  const finalPath = path.join(BUILD_DIR, outputPath.replace(REGEX_LEADING_SLASH, ''));
+const writeContentToPath = ({
+  fileContent,
+  outputPath = '',
+  onSuccess,
+  skipIfExists,
+  onSkip,
+  outputBase = BUILD_DIR,
+}) => {
+  const finalPath = path.join(outputBase, outputPath.replace(REGEX_LEADING_SLASH, ''));
   const logPath = IS_DEV ? `http://localhost:${PORT}/${outputPath.replace(REGEX_LEADING_SLASH, '')}` : finalPath;
 
   // create directory if necessary
@@ -64,9 +71,8 @@ const writeContentToPath = ({ fileContent, outputPath = '', onSuccess, skipIfExi
   } else {
     // write content to file
     fs.writeFile(finalPath, fileContent, (err) => {
-      // errors will be caught below
+      // errors will be caught by caller
       if (err) throw err;
-
       // handle success
       onSuccess(logPath, finalPath);
     });
