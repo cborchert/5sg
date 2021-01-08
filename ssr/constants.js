@@ -31,6 +31,8 @@ const BASE_DIR = path.join(__dirname, '../');
 const CONTENT_DIR = path.join(BASE_DIR, process.env.CONTENT_DIR || './content/');
 // where should we build the finished files?
 const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './build/');
+// where should we look for templates
+const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './frontend/templates/');
 
 // where should we find static files (which will be copied without processing to the build directory)?
 const STATIC_DIR = path.join(BASE_DIR, process.env.STATIC_DIR || './static/');
@@ -54,5 +56,6 @@ module.exports = {
   REPORTING_LEVEL,
   EXTRACT_CHAR_LIMIT,
   RENDER_DRAFTS,
+  TEMPLATE_DIR,
   processArgMap,
 };

@@ -88,6 +88,16 @@ const setIsDraft = () => (tree, file = {}) => {
 };
 
 /**
+ * A remark plugin to set node.data.template
+ *
+ * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ */
+const setTemplate = () => (tree, file = {}) => {
+  const { data = {} } = file;
+  data.template = (data.frontmatter && data.frontmatter.template) || 'default';
+};
+
+/**
  * A remark plugin to set node.data.finalPath, node.data.initialPath, and node.data.relPath, and
  *
  * see https://unifiedjs.com/learn/guide/create-a-plugin/
@@ -111,7 +121,7 @@ const setDataPaths = () => (tree, file = {}) => {
   }
 
   // TODO: use path package??
-  data.finalPath = `${outputPathBase}.html`;
+  data.finalPath = `/${outputPathBase}.html`;
   data.initialPath = filePath;
   data.relPath = relPath;
   const lastSlash = relPath.lastIndexOf('/');
@@ -140,6 +150,7 @@ const processor = remark()
   .use(setIsDraft)
   .use(setDataPaths)
   .use(setFileInfo)
+  .use(setTemplate)
   .use(html)
   .freeze();
 

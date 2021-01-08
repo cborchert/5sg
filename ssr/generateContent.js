@@ -2,18 +2,17 @@
 require('svelte/register');
 
 const fs = require('fs');
+const path = require('path');
 const vfile = require('vfile');
 
 // import local utils
 const generateOuterHtml = require('./util/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
-const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
+const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR } = require('./constants.js');
 const { log, forceLog, extendedError } = require('./util/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
-
-// load the Svelte template component used to create a page
-const Template = require('../frontend/templates/Page.svelte').default;
+const DefaultContentTemplate = require('../frontend/templates/Default.svelte').default;
 
 /**
  * Given settled promises, get fulfilled and handle the errors
@@ -40,8 +39,9 @@ const getFulfilled = (settled, errorMessage) =>
  *      relPath: string, // e.g. blog/post   1.md
  *      fileName: string, // e.g. post   1.md
  *      finalPath: string, // e.g. blog/post1.html OR e.g. designated-slug.html
- *      modified: string, //TODO
+ *      modified: string,
  *      created: string,
+ *      template: string,
  *      seo: {
  *        title: string,
  *        description: string,
@@ -90,10 +90,36 @@ const postProcessContent = async (processedContent) => {
   // we'll store the images to be processed here
   const imageMap = {};
   const promises = [];
+  const templates = {
+    Default: DefaultContentTemplate,
+  };
+
   processedContent.forEach((processed) => {
     const { contents: htmlContent, data = {} } = processed;
-    const { initialPath } = data;
+    const { initialPath, template = 'Default' } = data;
+
     try {
+      // load the Svelte template component used for the current page page
+      let Template = templates[template];
+      // if template is not stored in map
+      if (!Template) {
+        // we haven't used this template yet.
+        // no big deal, look it up!
+        const templatePath = path.join(TEMPLATE_DIR, `${template}.svelte`);
+        try {
+          // eslint doesn't like the following line because of the rules global-require import/no-dynamic-require
+          // eslint-disable-next-line
+          Template = require(templatePath).default;
+          templates[template] = Template;
+        } catch (err) {
+          // ...ok the template has something wrong with it.
+          // inform the user
+          extendedError(`while loading template file ${templatePath} (used by ${initialPath})`, err);
+          // and use the default template
+          Template = DefaultContentTemplate;
+        }
+      }
+
       // only generate publishable content
       // inject the data and html into the template
       // TODO: Handle mutliple templates
@@ -180,12 +206,17 @@ const publishContent = (content) => {
 async function generateContent() {
   forceLog('Generating content...');
 
+  // get all markdown files for processing
   const contentFiles = getFiles(CONTENT_DIR, ['md']);
 
   forceLog(`Content nodes found: ${contentFiles.length}`);
 
   // render html content and meta data for each content file
+  // TODO: We can handle svelte/svx files here
+  //  making sure that the output is {contents: HTML, data: {initialPath, fileInfo, etc. }}
   const processedContent = await processContent(contentFiles);
+
+  // TODO: create individual and dynamic pages
 
   // remove drafts if we're not allowing drafts to be published
   const publishableContent = RENDER_DRAFTS ? processedContent : processedContent.filter(({ data }) => !data.draft);

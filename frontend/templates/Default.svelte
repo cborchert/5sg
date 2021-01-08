@@ -24,8 +24,9 @@
 <body>
   <Header />
   <main>
-    <slot />
+    <slot name="beforeContent" />
     {@html htmlContent}
+    <slot name="afterContent" />
   </main>
   <Globals />
 </body>
