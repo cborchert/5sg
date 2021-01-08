@@ -3,6 +3,12 @@ const visit = require('unist-util-visit');
 const path = require('path');
 const rehypeParse = require('rehype-parse');
 const rehypeStringify = require('rehype-stringify');
+const {
+  REGEX_INVALID_PATH_CHARS,
+  REGEX_TRAILING_SLASH,
+  REGEX_LEADING_SLASH,
+  REGEX_REL_DIR,
+} = require('./util/strings.js');
 
 /**
  * A rehype plugin to replace relative links with absolute links
@@ -24,7 +30,7 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
   }
 
   // get relative path (removing trailing slash from cwd)
-  const relDirname = dirname.replace(cwd.replace(/\/$/, ''), '');
+  const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
   visit(tree, { tagName: 'a' }, ({ properties }) => {
     // We are resassigning a param variables, which is normally a bad practice,
@@ -35,8 +41,8 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     // replace relative urls with urls relative to the output folder
     // e.g. ../index.md in content/sub/sub2/test.md becomes sub/index.md
     // e.g. ./index.md in content/sub/sub2/test.md becomes sub/sub2/index.md
-    if (properties.href && /^\.?\.\//.test(properties.href)) {
-      href = path.join(relDirname, properties.href).replace(/^\//, '');
+    if (properties.href && REGEX_REL_DIR.test(properties.href)) {
+      href = path.join(relDirname, properties.href).replace(REGEX_LEADING_SLASH, '');
     }
 
     // if the url exists in the map, use final url from the map
@@ -70,7 +76,7 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
   }
 
   // get relative path (removing trailing slash from cwd)
-  const relDirname = dirname.replace(cwd.replace(/\/$/, ''), '');
+  const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
   visit(tree, { tagName: 'img' }, async ({ properties }) => {
     // We are resassigning a param variables, which is normally a bad practice,
@@ -86,10 +92,10 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
       if (!imageMap[originalPath]) {
         imageMap[originalPath] = { src };
       }
-    } else if (properties.src && /^\.?\.\//.test(properties.src)) {
+    } else if (properties.src && REGEX_REL_DIR.test(properties.src)) {
       // deal with relative paths
       src = path.join(relDirname, properties.src);
-      originalPath = path.join(cwd, src).replace(/[^A-Za-z0-9_\-/.]/g, '');
+      originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
       if (!imageMap[originalPath]) {
         imageMap[originalPath] = { src };
       }

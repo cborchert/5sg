@@ -12,6 +12,7 @@ const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR } = require('./constants.js');
 const { log, error, forceLog } = require('./util/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
+const { REGEX_EXTENSION, REGEX_INVALID_PATH_CHARS, REGEX_CURR_DIR, REGEX_LEADING_SLASH } = require('./util/strings.js');
 
 // load the Svelte template component used to create a page
 const Template = require('../frontend/templates/Page.svelte').default;
@@ -37,10 +38,7 @@ async function generateContent() {
       // e.g. ./content/path/to/myPage.md => ./build/path/to/myPage.html
       const relPath = file.replace(CONTENT_DIR, '');
 
-      let outputPathBase = relPath
-        .replace(/\.[^.]*$/, '')
-        .replace(/[^A-Za-z0-9_\-/.]/g, '')
-        .toLowerCase();
+      let outputPathBase = relPath.replace(REGEX_EXTENSION, '').replace(REGEX_INVALID_PATH_CHARS, '');
       let outputPath = `${outputPathBase}.html`;
 
       let pageContent = '';
@@ -71,11 +69,11 @@ async function generateContent() {
           ? data.frontmatter.permalink || data.frontmatter.path || data.frontmatter.route || data.frontmatter.slug
           : '';
         if (frontmatterPath)
+          // remove leading ./ or /, the extension, and invalid path chars
           outputPathBase = frontmatterPath
-            .replace(/^\.?\//, '')
-            .replace(/\.[^.]*$/, '')
-            .replace(/[^A-Za-z0-9_\-/.]/g, '')
-            .toLowerCase();
+            .replace(REGEX_CURR_DIR, '')
+            .replace(REGEX_EXTENSION, '')
+            .replace(REGEX_INVALID_PATH_CHARS, '');
         outputPath = `${outputPathBase}.html`;
 
         // only generate publishable content
@@ -124,7 +122,7 @@ async function generateContent() {
       if (!relPath.startsWith('/')) {
         nodeMap[`/${relPath}`] = outputPath;
       } else {
-        nodeMap[relPath.replace(/^\//, '')] = outputPath;
+        nodeMap[relPath.replace(REGEX_LEADING_SLASH, '')] = outputPath;
       }
     } catch (err) {
       error(`======================\nERROR PREPROCESSING PAGE:\n----------------------\n`);

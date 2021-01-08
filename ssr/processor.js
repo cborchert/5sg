@@ -7,6 +7,7 @@ const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
 const { EXTRACT_LIMIT } = require('./constants.js');
+const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
@@ -32,7 +33,7 @@ const extractSeo = () => (tree = {}, file = {}) => {
       });
     }
     // remove double spaces and terminal space
-    titleText = titleText.replace(/\s\s+/, ' ').replace(/\s$/, '');
+    titleText = titleText.replace(REGEX_CONSEC_SPACE, ' ').replace(REGEX_TRAILING_SPACE, '');
     data.seo.title = titleText;
   }
 
@@ -54,10 +55,10 @@ const extractSeo = () => (tree = {}, file = {}) => {
     }
 
     // remove double spaces and terminal space
-    descriptionText = descriptionText.replace(/\s\s+/, ' ').replace(/\s$/, '');
+    descriptionText = descriptionText.replace(REGEX_CONSEC_SPACE, ' ').replace(REGEX_TRAILING_SPACE, '');
     if (descriptionText.length > EXTRACT_LIMIT) {
       // remove final characters and then add ellipses
-      descriptionText = descriptionText.substr(0, EXTRACT_LIMIT).replace(/[^A-Za-z0-9]+$/, '');
+      descriptionText = descriptionText.substr(0, EXTRACT_LIMIT).replace(REGEX_TRAILING_NON_ALPHA_NUMERICS, '');
       descriptionText = `${descriptionText}...`;
     }
     data.seo.description = descriptionText;

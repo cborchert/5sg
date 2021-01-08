@@ -5,6 +5,7 @@ const sharp = require('sharp');
 
 const { IS_DEV, PORT, BUILD_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('../constants.js');
 const { log, error, forceLog, forceError } = require('./reporting.js');
+const { REGEX_LEADING_SLASH } = require('./strings.js');
 
 /**
  * Delete remove files in the designated build directory
@@ -45,8 +46,8 @@ function copyStaticFiles() {
  * @throws on I/O error
  */
 const writeContentToPath = ({ fileContent, outputPath = '', onSuccess, skipIfExists, onSkip }) => {
-  const finalPath = path.join(BUILD_DIR, outputPath.replace(/^\//, ''));
-  const logPath = IS_DEV ? `http://localhost:${PORT}/${outputPath.replace(/^\//, '')}` : finalPath;
+  const finalPath = path.join(BUILD_DIR, outputPath.replace(REGEX_LEADING_SLASH, ''));
+  const logPath = IS_DEV ? `http://localhost:${PORT}/${outputPath.replace(REGEX_LEADING_SLASH, '')}` : finalPath;
 
   // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
