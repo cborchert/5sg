@@ -12,6 +12,7 @@ const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR } = require('./util/constants.js');
 const { log, forceLog, extendedError } = require('./util/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
+const { getPaths } = require('./util/paths');
 const DefaultContentTemplate = require('../frontend/templates/Default.svelte').default;
 
 /**
@@ -30,7 +31,58 @@ const getFulfilled = (settled, errorMessage) =>
   }, []);
 
 /**
- * From an array of file paths, generate an array of nodes, where
+ * From an array of page file paths (svelte), generate an array of nodes, where
+ *
+ *  type node = {
+ *    data: {
+ *      draft: boolean,
+ *      initialPath: string, // e.g. /Users/chris/5sg/content/404.svelte
+ *      relPath: string, // e.g. 404.svelte
+ *      fileName: string, // e.g. 404.svelte
+ *      finalPath: string, // e.g. 404.html
+ *      modified: string,
+ *      created: string,
+ *      template: undefined,
+ *      seo: undefined, // must be handled by component
+ *      frontmatter: {}, // frontmatter
+ *    },
+ *    contents: "" // processed html
+ *    Component: SvelteComponent // used for rendering
+ *  }
+ */
+const processPages = (pageFiles = []) => {
+  const pages = [];
+  pageFiles.forEach((filePath) => {
+    try {
+      const data = {};
+
+      // assign the path data
+      const pathData = getPaths(filePath, CONTENT_DIR);
+      Object.assign(data, pathData);
+
+      // assign the file meta data
+      const fileInfo = fs.statSync(filePath);
+      data.modified = fileInfo.mtime;
+      data.created = fileInfo.birthtime;
+
+      // eslint doesn't like the import/no-dynamic-require and global-require for this line.
+      // eslint-disable-next-line
+      const Component = require(filePath).default;
+      pages.push({
+        contents: '',
+        data,
+        Component,
+      });
+    } catch (err) {
+      extendedError(`while processing page at ${filePath}`, err);
+    }
+  });
+
+  return pages;
+};
+
+/**
+ * From an array of content file paths (markdown), generate an array of nodes, where
  *
  *  type node = {
  *    data: {
@@ -52,7 +104,7 @@ const getFulfilled = (settled, errorMessage) =>
  *    // ...other vfile fields
  *  }
  */
-const processContent = async (files) => {
+const processContent = async (files = []) => {
   // process each file
   const promises = [];
   files.forEach((file) => {
@@ -83,10 +135,11 @@ const processContent = async (files) => {
   return results;
 };
 
-const postProcessContent = async (processedContent) => {
+const postProcessContent = async (processedContent = []) => {
   // extract meta data for each file
   //  => { relative/path/name.md: {...nodeData} }
   const nodeData = Object.fromEntries(processedContent.map(({ data }) => [data.relPath, data]));
+
   // we'll store the images to be processed here
   const imageMap = {};
   const promises = [];
@@ -95,12 +148,13 @@ const postProcessContent = async (processedContent) => {
   };
 
   processedContent.forEach((processed) => {
-    const { contents: htmlContent, data = {} } = processed;
+    const { contents: htmlContent, data = {}, Component } = processed;
     const { initialPath, template = 'Default' } = data;
 
     try {
-      // load the Svelte template component used for the current page page
-      let Template = templates[template];
+      // load the Svelte template component used for the current content
+      // If a Component prop was identified, we'll use that
+      let Template = Component || templates[template];
       // if template is not stored in map
       if (!Template) {
         // we haven't used this template yet.
@@ -212,17 +266,28 @@ async function generateContent() {
   forceLog(`Content nodes found: ${contentFiles.length}`);
 
   // render html content and meta data for each content file
-  // TODO: We can handle svelte/svx files here
-  //  making sure that the output is {contents: HTML, data: {initialPath, fileInfo, etc. }}
   const processedContent = await processContent(contentFiles);
-
-  // TODO: create individual and dynamic pages
 
   // remove drafts if we're not allowing drafts to be published
   const publishableContent = RENDER_DRAFTS ? processedContent : processedContent.filter(({ data }) => !data.draft);
 
+  // get all svelte files for processing
+  const pageFiles = getFiles(CONTENT_DIR, ['svelte']);
+
+  forceLog(`Page nodes found: ${pageFiles.length}`);
+
+  // Process any .svelte files
+  // making sure that the output is {contents: "", Component: require(path).default, data: {initialPath, fileInfo, etc. }}
+  // TODO: Import svx as well
+  const processedPages = processPages(pageFiles);
+
+  // TODO: create individual and dynamic pages
+
   // get final processed HTML content and the images to be processed
-  const { results: finalContent = [], images = [] } = await postProcessContent(publishableContent);
+  const { results: finalContent = [], images = [] } = await postProcessContent([
+    ...publishableContent,
+    ...processedPages,
+  ]);
 
   // write final content to files
   forceLog(`Building html for ${finalContent.length} nodes...`);

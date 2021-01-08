@@ -7,15 +7,8 @@ const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
 const { EXTRACT_LIMIT } = require('./util/constants.js');
-const {
-  REGEX_CONSEC_SPACE,
-  REGEX_TRAILING_SPACE,
-  REGEX_TRAILING_NON_ALPHA_NUMERICS,
-  REGEX_EXTENSION,
-  REGEX_INVALID_PATH_CHARS,
-  REGEX_CURR_DIR,
-  REGEX_LEADING_SLASH,
-} = require('./util/strings.js');
+const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
+const { getPaths } = require('./util/paths.js');
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
@@ -104,31 +97,10 @@ const setTemplate = () => (tree, file = {}) => {
  */
 const setDataPaths = () => (tree, file = {}) => {
   const { data = {}, cwd, path: filePath } = file;
-  const relPath = filePath.replace(cwd, '');
 
-  let outputPathBase = relPath.replace(REGEX_EXTENSION, '').replace(REGEX_INVALID_PATH_CHARS, '');
-
-  // allow for custom path, properly formatted, retrieved from path, permalink, slug, or route in the frontmatter
-  const frontmatterPath = data.frontmatter
-    ? data.frontmatter.permalink || data.frontmatter.path || data.frontmatter.route || data.frontmatter.slug
-    : '';
-  if (frontmatterPath) {
-    // remove leading ./ or /, the extension, and invalid path chars
-    outputPathBase = frontmatterPath
-      .replace(REGEX_CURR_DIR, '')
-      .replace(REGEX_EXTENSION, '')
-      .replace(REGEX_INVALID_PATH_CHARS, '');
-  }
-
-  // TODO: use path package??
-  data.finalPath = `/${outputPathBase}.html`;
-  data.initialPath = filePath;
-  data.relPath = relPath;
-  const lastSlash = relPath.lastIndexOf('/');
-  data.fileName = relPath
-    .substr(lastSlash === -1 ? 0 : lastSlash)
-    .replace(REGEX_EXTENSION, '')
-    .replace(REGEX_LEADING_SLASH, '');
+  // assign data all the path data
+  const pathData = getPaths(filePath, cwd);
+  Object.assign(data, pathData);
 };
 
 /**

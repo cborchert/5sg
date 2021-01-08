@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 const REPORTING_LEVEL = processArgMap.REPORTING_LEVEL ? Number(processArgMap.REPORTING_LEVEL) : 1;
 
 // the base directory of the project
-const BASE_DIR = path.join(__dirname, '../');
+const BASE_DIR = path.join(__dirname, '../../');
 
 // NOTE: For security reasons, all for *_DIR are relative to the base directory of this project.
 //  This means that you cannot designate a content or build folder outside of this project.

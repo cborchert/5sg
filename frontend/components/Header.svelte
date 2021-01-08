@@ -44,7 +44,7 @@
   <span>My site</span>
   <nav>
     <ul>
-      <li><a href="/index.md">home</a></li>
+      <li><a href="index.svelte">home</a></li>
     </ul>
   </nav>
 </header>

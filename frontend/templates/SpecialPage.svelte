@@ -1,12 +1,12 @@
 <script>
-  import Page from './Default.svelte';
+  import Default from './Default.svelte';
 
   export let htmlContent = '';
   export let data = {};
   export let nodeData = {};
 </script>
 
-<Page {data} {htmlContent}>
+<Default {data} {htmlContent}>
   <div slot="beforeContent">
     <h1>What a special page!</h1>
   </div>
@@ -21,4 +21,4 @@
       {/each}
     </ul>
   </div>
-</Page>
+</Default>

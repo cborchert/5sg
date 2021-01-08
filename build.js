@@ -1,6 +1,6 @@
 const process = require('process');
 
-const { IS_DEV, PORT } = require('./ssr/constants.js');
+const { IS_DEV, PORT } = require('./ssr/util/constants.js');
 const { deletePreviousBuild, copyStaticFiles } = require('./ssr/util/io.js');
 const { log, forceLog } = require('./ssr/util/reporting.js');
 const generateContent = require('./ssr/generateContent.js');
@@ -21,6 +21,11 @@ if (IS_DEV) {
   const app = express();
 
   app.use(express.static('build'));
+
+  // Redirect to a 404 page as a fallback (on errors)
+  app.use((req, res) => {
+    res.redirect('/404.html');
+  });
 
   app.listen(PORT, () => {
     log(`Dev server started, serving static build at http://localhost:${PORT}`);
