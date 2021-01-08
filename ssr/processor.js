@@ -6,6 +6,14 @@ const frontmatter = require('remark-frontmatter');
 const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
+// OPTIONAL plugins, which will increase build time
+// NOTE these four, taken together, add 2 seconds to build 1012 nodes which used to take 7.5 seconds (adding 25%)
+const gfm = require('remark-gfm');
+const gemoji = require('remark-gemoji');
+const footnotes = require('remark-footnotes');
+// we're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
+// const highlight = require('remark-highlight.js');
+
 const { EXTRACT_LIMIT } = require('./util/constants.js');
 const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
 const { getPaths } = require('./util/paths.js');
@@ -123,6 +131,18 @@ const processor = remark()
   .use(setDataPaths)
   .use(setFileInfo)
   .use(setTemplate)
+  // NOTE: using additional plugins will add weight to the compiler, use sparsely
+  // OPTIONAL: GitHub Flavored Markdown https://github.github.com/gfm/ for tables, etc.
+  .use(gfm)
+  // OPTIONAL: gemoji replacement like :) or :+1:
+  .use(gemoji)
+  // OPTIONAL: pandoc style footnotes
+  .use(footnotes)
+  // OPTIONAL: code formatting using highlight.js. Prism was too heavyweight
+  // note that we're including the css and js in Globals.svelte
+  // We're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
+  // const highlight = require('remark-highlight.js');
+  // .use(highlight)
   .use(html)
   .freeze();
 

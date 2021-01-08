@@ -150,6 +150,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 4 jan 2021 | 06f5e49 | 5.63s | with global includes      |
 | 8 jan 2021 | dd1b07b | 6.71s | After refactors           |
 | 8 jan 2021 | 48e68af | 6.80s | Add multiple templates    |
+| 8 jan 2021 | 8a5cdc2 | 7.46s | Parse svelte              |
 
 ## API Notes
 
