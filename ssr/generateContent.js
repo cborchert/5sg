@@ -9,6 +9,7 @@ const vfile = require('vfile');
 const generateOuterHtml = require('./util/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
+const createPages = require('./createPages.js');
 const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR } = require('./util/constants.js');
 const { log, forceLog, extendedError } = require('./util/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
@@ -282,11 +283,13 @@ async function generateContent() {
   const processedPages = processPages(pageFiles);
 
   // TODO: create individual and dynamic pages
+  const dynamicPages = createPages([...publishableContent, ...processedPages]);
 
   // get final processed HTML content and the images to be processed
   const { results: finalContent = [], images = [] } = await postProcessContent([
-    ...publishableContent,
-    ...processedPages,
+    // ...publishableContent,
+    // ...processedPages,
+    ...dynamicPages,
   ]);
 
   // write final content to files
