@@ -282,13 +282,13 @@ async function generateContent() {
   // TODO: Import svx as well
   const processedPages = processPages(pageFiles);
 
-  // TODO: create individual and dynamic pages
+  // create dynamic pages
   const dynamicPages = createPages([...publishableContent, ...processedPages]);
 
   // get final processed HTML content and the images to be processed
   const { results: finalContent = [], images = [] } = await postProcessContent([
-    // ...publishableContent,
-    // ...processedPages,
+    ...publishableContent,
+    ...processedPages,
     ...dynamicPages,
   ]);
 
