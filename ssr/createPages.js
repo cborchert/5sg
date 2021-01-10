@@ -1,4 +1,8 @@
-const BlogFeedComponent = require('../frontend/pages/BlogFeed.svelte');
+const { REGEX_INVALID_PATH_CHARS } = require('./util/strings.js');
+
+const BlogFeedPageTemplate = require('../frontend/pages/BlogFeed.svelte').default;
+const CategoryPageTemplate = require('../frontend/pages/Category.svelte').default;
+const CategoriesHomePageTemplate = require('../frontend/pages/Categories.svelte').default;
 
 // TODO: while we don't want to bog people down with complexity, it would be nice to have a way to reinforce the `node` type
 /**
@@ -28,6 +32,9 @@ const BlogFeedComponent = require('../frontend/pages/BlogFeed.svelte');
  * @return {array} of new content nodes
  */
 const createPages = (content) => {
+  // ///////////////////////////
+  // BLOG FEED /////////////////
+  // ///////////////////////////
   // example of pagination
   // create a multipage blog feed
 
@@ -69,10 +76,71 @@ const createPages = (content) => {
       pagination: blogFeedPagination,
     },
     // the rendering component
-    Component: BlogFeedComponent.default,
+    Component: BlogFeedPageTemplate,
   }));
 
-  return [...blogFeedNodes];
+  // ///////////////////////////
+  // CATEGORIES ////////////////
+  // ///////////////////////////
+  // create a linking mechanism
+  // so that <a href="category-page-foo-bar.dynamic">Foo bar category</a> will be replaced with the link to the final html
+  const getCategorySlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
+  const getCategoryDynamicPath = (name) => `category-page-${getCategorySlug(name)}.dynamic`;
+  const categoryListPagePath = `categories-page.dynamic`;
+  // Get a map of categories
+  // e.g.
+  // TODO: see if this exists in lodash
+  // {
+  //   test: { path: category-page-test.dynamic, posts: [p1, p2, p3, p4],},
+  //   foo: { path: category-page-foo.dynamic, posts: [p5, p6],},
+  //   uncategorized: { path: category-page-uncategorized.dynamic, posts: [p7, p8, p9],}, // <== generated for pages without categories
+  // }
+  const categories = blogPosts.reduce((prevCategories, node) => {
+    const categoryName =
+      node.frontmatter && node.frontmatter.category ? String(node.frontmatter.category).toLowerCase() : 'uncategorized';
+    if (!prevCategories[categoryName]) {
+      // eslint-disable-next-line no-param-reassign
+      prevCategories[categoryName] = { path: getCategoryDynamicPath(categoryName), posts: [] };
+    }
+    prevCategories[categoryName].posts.push(node);
+    return prevCategories;
+  }, {});
+
+  // create individual pages for each category
+  const categoryNodes = Object.entries(categories).map(([categoryName, { path, posts }]) => ({
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      initialPath: path, // useful for reporting
+      relPath: path, // useful for reporting and linking
+      finalPath: `/blog/category/${getCategorySlug(categoryName)}.html`,
+      // props used in component
+      posts,
+      categories,
+      name: categoryName,
+      categoryHome: categoryListPagePath,
+    },
+    // the rendering component
+    Component: CategoryPageTemplate,
+  }));
+
+  // create category home
+  const categoryHomeNode = {
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      initialPath: categoryListPagePath, // useful for reporting
+      relPath: categoryListPagePath, // useful for reporting and linking
+      finalPath: `/blog/categories.html`,
+      // props used in component
+
+      categories,
+    },
+    // the rendering component
+    Component: CategoriesHomePageTemplate,
+  };
+
+  return [...blogFeedNodes, ...categoryNodes, categoryHomeNode];
 };
 
 module.exports = createPages;
