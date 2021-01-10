@@ -3,6 +3,8 @@ const { REGEX_INVALID_PATH_CHARS } = require('./util/strings.js');
 const BlogFeedPageTemplate = require('../frontend/pages/BlogFeed.svelte').default;
 const CategoryPageTemplate = require('../frontend/pages/Category.svelte').default;
 const CategoriesHomePageTemplate = require('../frontend/pages/Categories.svelte').default;
+const TagPageTemplate = require('../frontend/pages/Tag.svelte').default;
+const TagsHomePageTemplate = require('../frontend/pages/Tags.svelte').default;
 
 // TODO: while we don't want to bog people down with complexity, it would be nice to have a way to reinforce the `node` type
 /**
@@ -32,6 +34,8 @@ const CategoriesHomePageTemplate = require('../frontend/pages/Categories.svelte'
  * @return {array} of new content nodes
  */
 const createPages = (content) => {
+  // TODO: Create helper function for this -- basically finding members of a collection and then create a pagination
+
   // ///////////////////////////
   // BLOG FEED /////////////////
   // ///////////////////////////
@@ -78,6 +82,9 @@ const createPages = (content) => {
     // the rendering component
     Component: BlogFeedPageTemplate,
   }));
+
+  // TODO: Create helper function for this -- tags and categories are the same kind of operation, associating nodes with a classification,
+  // then creating a page for each member of the classifier. The main difference is that a page can have one category and several tags
 
   // ///////////////////////////
   // CATEGORIES ////////////////
@@ -140,7 +147,64 @@ const createPages = (content) => {
     Component: CategoriesHomePageTemplate,
   };
 
-  return [...blogFeedNodes, ...categoryNodes, categoryHomeNode];
+  // ///////////////////////////
+  // TAGS //////////////////////
+  // ///////////////////////////
+  // create a linking mechanism
+  // so that <a href="category-page-foo-bar.dynamic">Foo bar category</a> will be replaced with the link to the final html
+  const getTagSlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
+  const getTagDynamicPath = (name) => `tag-page-${getCategorySlug(name)}.dynamic`;
+  const tagListPagePath = `tag-page.dynamic`;
+  // Get a map of tags
+  const tags = blogPosts.reduce((prevTags, node) => {
+    // TODO: here, we're assuming it's an array. Do some type checking
+    const tagNames = node.frontmatter && node.frontmatter.tags ? node.frontmatter.tags : [];
+    tagNames.forEach((tag = '') => {
+      const tagName = String(tag).toLowerCase();
+      if (!prevTags[tagName]) {
+        // eslint-disable-next-line no-param-reassign
+        prevTags[tagName] = { path: getTagDynamicPath(tagName), posts: [] };
+      }
+      prevTags[tagName].posts.push(node);
+    });
+
+    return prevTags;
+  }, {});
+
+  // create individual pages for each tag
+  const tagNodes = Object.entries(tags).map(([tagName, { path, posts }]) => ({
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      initialPath: path, // useful for reporting
+      relPath: path, // useful for reporting and linking
+      finalPath: `/blog/tag/${getTagSlug(tagName)}.html`,
+      // props used in component
+      posts,
+      tags,
+      name: tagName,
+      tagsHome: tagListPagePath,
+    },
+    // the rendering component
+    Component: TagPageTemplate,
+  }));
+
+  // create tag home
+  const tagHomeNode = {
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      initialPath: tagListPagePath, // useful for reporting
+      relPath: tagListPagePath, // useful for reporting and linking
+      finalPath: `/blog/tags.html`,
+      // props used in component
+      tags,
+    },
+    // the rendering component
+    Component: TagsHomePageTemplate,
+  };
+
+  return [...blogFeedNodes, ...categoryNodes, categoryHomeNode, ...tagNodes, tagHomeNode];
 };
 
 module.exports = createPages;
