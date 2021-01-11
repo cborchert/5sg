@@ -99,10 +99,10 @@ Once the first five tasks are complete, we should do a little refactor and prese
     - [x] ~~Prism~~ Prism takes to long, using highlight.js
     - [x] Footnotes
 - [x] 7. Allow for Multiple Templates
-- [ ] 8. Post processing of content data
-  - [ ] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
+- [x] 8. Post processing of content data
+  - [x] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
     - [x] List of pages and their attributes, their links
-    - [ ] Site meta data
+    - [x] Site meta data
   - [x] Create tags page
   - [x] Create categories page
   - [x] Create a blog feed page
@@ -151,7 +151,13 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 8 jan 2021 | 48e68af | 6.80s | Add multiple templates    |
 | 8 jan 2021 | 8a5cdc2 | 7.46s | Parse svelte              |
 
-**NOTE:** In order to properly test this for dynamically generated content (tags, categories, blog feed), I need to generate a data set of 1000 posts which accurately uses these attributes.
+**NOTE:** ~In order to properly test this for dynamically generated content (tags, categories, blog feed), I need to generate a data set of 1000 posts which accurately uses these attributes.~
+
+**NOTE2:** I created 100 images and 1000 interlinked blog posts as a new basis for testing. Weirdly enough, even though I have not put anything in caching, the initial build took 40 seconds while the subsequent build took 10s. Is it possible that some of the files were saved in RAM or something? I don't know enough about this to give a correct explanation.
+
+| Date        | Commit  | time           | description                               |
+| ----------- | ------- | -------------- | ----------------------------------------- |
+| 11 jan 2021 | f199adc | 39.39s / 9.54s | New Content, parse interlinked blog posts |
 
 ## API Notes
 
