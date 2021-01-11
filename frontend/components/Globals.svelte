@@ -17,7 +17,6 @@
   <!-- turbolinks for giving page navigation a more native feel -->
   <script defer src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
   </script>
-  </script>
 </svelte:head>
 
 <body>
