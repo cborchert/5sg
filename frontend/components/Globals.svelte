@@ -17,8 +17,6 @@
   <!-- turbolinks for giving page navigation a more native feel -->
   <script defer src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
   </script>
-  <!-- highlight.js for highlighting code blocks on page load (for blogs and documentation sites, etc.) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js">
   </script>
 </svelte:head>
 

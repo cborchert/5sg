@@ -11,7 +11,6 @@ const html = require('remark-html');
 const gfm = require('remark-gfm');
 const gemoji = require('remark-gemoji');
 const footnotes = require('remark-footnotes');
-// we're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
 const highlight = require('remark-highlight.js');
 
 const { EXTRACT_LIMIT } = require('./util/constants.js');
@@ -139,9 +138,7 @@ const processor = remark()
   // OPTIONAL: pandoc style footnotes
   .use(footnotes)
   // OPTIONAL: code formatting using highlight.js. Prism was too heavyweight
-  // note that we're including the css and js in Globals.svelte
-  // We're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
-  // const highlight = require('remark-highlight.js');
+  // note that we're including the css in Globals.svelte
   .use(highlight)
   .use(html)
   .freeze();
