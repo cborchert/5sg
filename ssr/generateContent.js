@@ -10,10 +10,13 @@ const generateOuterHtml = require('./util/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
 const createPages = require('./createPages.js');
-const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR } = require('./util/constants.js');
+const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR } = require('./util/constants.js');
 const { log, forceLog, extendedError } = require('./util/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
+const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH } = require('./util/strings.js');
 const { getPaths } = require('./util/paths');
+const config = require('../config.js');
+
 const DefaultContentTemplate = require('../frontend/templates/Default.svelte').default;
 
 /**
@@ -238,6 +241,7 @@ const publishContent = (content) => {
       if (!fileContent || !outputPath) {
         throw new Error('Missing content or path');
       }
+      console.log(outputPath);
       writeContentToPath({
         fileContent,
         outputPath,
@@ -252,6 +256,70 @@ const publishContent = (content) => {
     } catch (err) {
       extendedError(`while post publishing content from ${initialPath}`, err);
     }
+  });
+};
+
+/**
+ * Create sitemap.txt using page nodes and config.siteMetadata.siteUrl
+ * See more here: https://developers.google.com/search/docs/advanced/sitemaps/build-sitemap
+ */
+const createSiteMap = (nodes) => {
+  if (!config.generateSitemap) return;
+  // for every node, e.g. {data: {finalPath: '/blog/post1.html'}} return 'http://www.example.com/blog/post1.html'
+  const pages = nodes
+    .map(
+      ({ data }) =>
+        (data &&
+          data.finalPath &&
+          `${config.siteMetadata.siteUrl.trim().replace(REGEX_TRAILING_SLASH, '')}/${data.finalPath
+            .trim()
+            .replace(REGEX_LEADING_SLASH, '')}`) ||
+        null,
+    )
+    .filter((a) => a);
+  writeContentToPath({
+    fileContent: pages.join('\n'),
+    outputPath: '/sitemap.txt',
+    onSuccess: (logPath, finalPath) => {
+      // add to robots.txt, if it exists
+      fs.appendFileSync(
+        path.join(BUILD_DIR, '/robots.txt'),
+        `Sitemap: ${config.siteMetadata.siteUrl.trim().replace(REGEX_TRAILING_SLASH, '')}/sitemap.txt`,
+      );
+      if (finalPath !== logPath) {
+        log(`Serving the sitemap at ${logPath}`);
+      } else {
+        log(`Created the sitemap at ${finalPath}`);
+      }
+    },
+  });
+};
+
+/**
+ * Create site.webmanifest using config
+ * See more here: https://developer.mozilla.org/en-US/docs/Web/Manifest
+ */
+const createManifest = () => {
+  if (!config.generateManifest) return;
+  const manifest = {
+    name: config.siteMetadata.name,
+    short_name: config.siteMetadata.short_name,
+    description: config.siteMetadata.description,
+    icons: config.siteMetadata.icons,
+    theme_color: config.siteMetadata.theme_color,
+    background_color: config.siteMetadata.background_color,
+    display: config.siteMetadata.display,
+  };
+  writeContentToPath({
+    fileContent: JSON.stringify(manifest),
+    outputPath: '/site.webmanifest',
+    onSuccess: (logPath, finalPath) => {
+      if (finalPath !== logPath) {
+        log(`Serving the web manifest at ${logPath}`);
+      } else {
+        log(`Created the web manifest at ${finalPath}`);
+      }
+    },
   });
 };
 
@@ -291,7 +359,6 @@ async function generateContent() {
     ...processedPages,
     ...dynamicPages,
   ]);
-
   // write final content to files
   forceLog(`Building html for ${finalContent.length} nodes...`);
   publishContent(finalContent);
@@ -299,6 +366,10 @@ async function generateContent() {
   // process and write images
   forceLog(`Processing ${Object.keys(images).length} images...`);
   publishImages(images);
+
+  // finishing touches: sitemap and sitemanifest
+  createSiteMap(finalContent);
+  createManifest();
 
   forceLog(`Done`);
 }
