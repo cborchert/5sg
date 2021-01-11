@@ -12,7 +12,7 @@ const gfm = require('remark-gfm');
 const gemoji = require('remark-gemoji');
 const footnotes = require('remark-footnotes');
 // we're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
-// const highlight = require('remark-highlight.js');
+const highlight = require('remark-highlight.js');
 
 const { EXTRACT_LIMIT } = require('./util/constants.js');
 const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
@@ -142,7 +142,7 @@ const processor = remark()
   // note that we're including the css and js in Globals.svelte
   // We're not using this plugin here. We're actually doing that on page load in static/scripts/global.js
   // const highlight = require('remark-highlight.js');
-  // .use(highlight)
+  .use(highlight)
   .use(html)
   .freeze();
 

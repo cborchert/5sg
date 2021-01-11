@@ -41,13 +41,22 @@
 </style>
 
 <header>
-  <span><a href="index.svelte">My site</a></span>
+  <span><a href="/">My site</a></span>
   <nav>
+    <!-- we could reference the slugs like this-->
+    <!-- 
+      <ul>
+        <li><a href="index.svelte">home</a></li>
+        <li><a href="blog-page-1.dynamic">blog</a></li>
+        <li><a href="tag-page.dynamic">tags</a></li>
+        <li><a href="categories-page.dynamic">categories</a></li>
+      </ul> -->
+    <!-- or the final paths like this-->
     <ul>
-      <li><a href="index.svelte">home</a></li>
-      <li><a href="blog-page-1.dynamic">blog</a></li>
-      <li><a href="tag-page.dynamic">tags</a></li>
-      <li><a href="categories-page.dynamic">categories</a></li>
+      <li><a href="/">home</a></li>
+      <li><a href="/blog/">blog</a></li>
+      <li><a href="/blog/tags.html">tags</a></li>
+      <li><a href="/blog/categories.html">categories</a></li>
     </ul>
   </nav>
 </header>

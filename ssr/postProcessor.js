@@ -44,10 +44,15 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     if (REGEX_REL_DIR.test(href)) {
       href = path.join(relDirname, href);
     }
-    href = href.replace(REGEX_LEADING_SLASH, '');
+
+    // node information is stored without beginning slash, so we
+    const hrefKey = href.replace(REGEX_LEADING_SLASH, '');
 
     // if the url exists in the map, use final url from the map
-    if (nodeData[href]) {
+    // be forgiving -- with or without leading slash will do
+    if (nodeData[hrefKey]) {
+      href = nodeData[hrefKey].finalPath;
+    } else if (nodeData[href]) {
       href = nodeData[href].finalPath;
     } else if (REGEX_EXTERNAL_LINK.test(href)) {
       // non-local files should open in a new tab
@@ -121,7 +126,7 @@ const postProcessor = unified()
   // back to HTML
   .use(rehypeStringify)
   // TODO: minify the html (build only, this adds a few seconds to build time)
-  // .use(require("rehype-preset-minify"))
+  // .use(require('rehype-preset-minify'))
   .freeze();
 
 module.exports = postProcessor;
