@@ -30,7 +30,7 @@ const BASE_DIR = path.join(__dirname, '../../');
 // where should we look for the content?
 const CONTENT_DIR = path.join(BASE_DIR, process.env.CONTENT_DIR || './content/');
 // where should we build the finished files?
-const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './build/');
+const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './dist/');
 // where should we look for templates
 const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './frontend/templates/');
 

@@ -18,7 +18,7 @@ For demo purposes of the build process, try this:
 - Run `yarn` or `npm install`
 - Copy this readme file to `/content/readme.md`, or add your own content.
 - Run `yarn build`
-- Check the `./build` directory 🕵️‍♀️
+- Check the `./dist` directory 🕵️‍♀️
 
 ### What the 🤬!? My svelte components DON'T DO ANYTHING
 
