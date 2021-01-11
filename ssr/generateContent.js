@@ -241,7 +241,6 @@ const publishContent = (content) => {
       if (!fileContent || !outputPath) {
         throw new Error('Missing content or path');
       }
-      console.log(outputPath);
       writeContentToPath({
         fileContent,
         outputPath,

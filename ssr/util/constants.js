@@ -35,7 +35,7 @@ const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './build/');
 const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './frontend/templates/');
 
 // where should we find static files (which will be copied without processing to the build directory)?
-const STATIC_DIR = path.join(BASE_DIR, process.env.STATIC_DIR || './static/');
+const STATIC_DIR = path.join(BASE_DIR, process.env.STATIC_DIR || './content/static/');
 // where should we copy static files to?
 const BUILD_STATIC_DIR = path.join(BUILD_DIR, process.env.STATIC_DIR || './static/');
 
