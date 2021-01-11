@@ -41,7 +41,7 @@
 </style>
 
 <header>
-  <span>My site</span>
+  <span><a href="index.svelte">My site</a></span>
   <nav>
     <ul>
       <li><a href="index.svelte">home</a></li>

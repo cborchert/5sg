@@ -46,9 +46,11 @@
     "prettier": "^2.2.1"
   },
   "scripts": {
-    "build": "node build.js REPORTING_LEVEL=2",
+    "build": "node build.js REPORTING_LEVEL=0",
     "build:quiet": "node build.js REPORTING_LEVEL=0",
-    "dev": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore build/ REPORTING_LEVEL=2 DEV=1",
-    "dev:quiet": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore build/ OUPUT_LEVEL=0 DEV=1"
+    "build:explicit": "node build.js REPORTING_LEVEL=2",
+    "dev": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore build/ REPORTING_LEVEL=0 DEV=1",
+    "dev:quiet": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore build/ OUPUT_LEVEL=0 DEV=1",
+    "dev:explicit": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore build/ OUPUT_LEVEL=2 DEV=1"
   }
 }
