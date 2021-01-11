@@ -153,7 +153,7 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 
 **NOTE:** ~In order to properly test this for dynamically generated content (tags, categories, blog feed), I need to generate a data set of 1000 posts which accurately uses these attributes.~
 
-**NOTE2:** I created 100 images and 1000 interlinked blog posts as a new basis for testing. Weirdly enough, even though I have not put anything in caching, the initial build took 40 seconds while the subsequent build took 10s. Is it possible that some of the files were saved in RAM or something? I don't know enough about this to give a correct explanation.
+**NOTE2:** I created 100 images and 1000 interlinked blog posts as a new basis for testing. Weirdly enough, even though I have not put anything in caching, the initial build took 40 seconds while the subsequent build took 10s. Is it possible that some of the files were saved in RAM or something? I don't know enough about this to give a correct explanation. It took 21 seconds on netlify
 
 | Date        | Commit  | time           | description                               |
 | ----------- | ------- | -------------- | ----------------------------------------- |

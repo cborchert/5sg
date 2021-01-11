@@ -45,6 +45,9 @@
   <nav>
     <ul>
       <li><a href="index.svelte">home</a></li>
+      <li><a href="blog-page-1.dynamic">blog</a></li>
+      <li><a href="tag-page.dynamic">tags</a></li>
+      <li><a href="categories-page.dynamic">categories</a></li>
     </ul>
   </nav>
 </header>
