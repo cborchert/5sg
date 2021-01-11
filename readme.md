@@ -92,21 +92,20 @@ If I ever make it to a version 1, the path will look like this
 
 Once the first five tasks are complete, we should do a little refactor and present an example site/project. Also this would be a good time to think about including prettier, putting config in an easy to access place, etc.
 
-- [ ] 6. Content Improvements pt. 2
-  - [ ] Add (optional) remark/rehype plugins for
-    - [ ] Emojis
-    - [ ] Katex
-    - [ ] Prism
-    - [ ] Footnotes
+- [x] 6. Content Improvements pt. 2
+  - [x] Add (optional) remark/rehype plugins for
+    - [x] Emojis
+    - [ ] ~~Katex:~~ Plugin not working??
+    - [x] ~~Prism~~ Prism takes to long, using highlight.js
+    - [x] Footnotes
 - [x] 7. Allow for Multiple Templates
 - [ ] 8. Post processing of content data
   - [ ] Gather information and push to each page to allow for more complicated build ("next post" links, "tags" page, etc.)
     - [x] List of pages and their attributes, their links
     - [ ] Site meta data
-  - [ ] Create tags page
-  - [ ] Create categories page
-  - [ ] Create a blog feed page
-  - [ ] Create an author's page
+  - [x] Create tags page
+  - [x] Create categories page
+  - [x] Create a blog feed page
 - [ ] 9. Image Processing
   - [x] Preprocess images using sharp
   - [ ] use sharp or blurhash to create several image sizes
@@ -151,6 +150,8 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | 8 jan 2021 | dd1b07b | 6.71s | After refactors           |
 | 8 jan 2021 | 48e68af | 6.80s | Add multiple templates    |
 | 8 jan 2021 | 8a5cdc2 | 7.46s | Parse svelte              |
+
+**NOTE:** In order to properly test this for dynamically generated content (tags, categories, blog feed), I need to generate a data set of 1000 posts which accurately uses these attributes.
 
 ## API Notes
 

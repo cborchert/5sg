@@ -19,6 +19,8 @@ const REGEX_CONSEC_SPACE = /\s\s+/;
 const REGEX_TRAILING_SPACE = /\s$/;
 // matches any final non-alpha numeric characters
 const REGEX_TRAILING_NON_ALPHA_NUMERICS = /[^A-Za-z0-9]+$/;
+// matches links starting with http://, https://, file://, //, etc.
+const REGEX_EXTERNAL_LINK = /[^A-Za-z0-9]*:?\/\/$/;
 
 module.exports = {
   REGEX_EXTENSION,
@@ -30,4 +32,5 @@ module.exports = {
   REGEX_CONSEC_SPACE,
   REGEX_TRAILING_SPACE,
   REGEX_TRAILING_NON_ALPHA_NUMERICS,
+  REGEX_EXTERNAL_LINK,
 };

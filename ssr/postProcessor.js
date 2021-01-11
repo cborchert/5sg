@@ -8,6 +8,7 @@ const {
   REGEX_TRAILING_SLASH,
   REGEX_LEADING_SLASH,
   REGEX_REL_DIR,
+  REGEX_EXTERNAL_LINK,
 } = require('./util/strings.js');
 
 /**
@@ -48,7 +49,7 @@ const replaceRelativeLinks = () => (tree = {}, file = {}) => {
     // if the url exists in the map, use final url from the map
     if (nodeData[href]) {
       href = nodeData[href].finalPath;
-    } else {
+    } else if (REGEX_EXTERNAL_LINK.test(href)) {
       // non-local files should open in a new tab
       properties.target = '_blank';
     }
