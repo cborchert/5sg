@@ -3,6 +3,9 @@
 
   export let htmlContent = '';
   export let data = {};
+  export let siteMetadata = {};
+  const { name: siteTitle = '' } = siteMetadata;
+
   const frontmatter = data.frontmatter || {};
   const { title: metaTitle, description: metaDescription } = data.seo || {};
   const { title, date, author } = frontmatter;
@@ -12,7 +15,7 @@
 </script>
 
 <svelte:head>
-  <title>{metaTitle || ''}</title>
+  <title>{metaTitle || ''} -- {siteTitle}</title>
   <meta name="description" content={metaDescription} />
 </svelte:head>
 

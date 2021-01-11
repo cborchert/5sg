@@ -1,4 +1,6 @@
 module.exports = {
+  // siteMetadata is injected into every template as the prop siteMetadata
+  // it is also used for generating the sitemap and manifest
   siteMetadata: {
     // used for sitemap
     siteUrl: `https://www.example.com`,

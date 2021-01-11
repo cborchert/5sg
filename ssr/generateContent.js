@@ -143,6 +143,7 @@ const postProcessContent = async (processedContent = []) => {
   // extract meta data for each file
   //  => { relative/path/name.md: {...nodeData} }
   const nodeData = Object.fromEntries(processedContent.map(({ data }) => [data.relPath, data]));
+  const { siteMetadata } = config;
 
   // we'll store the images to be processed here
   const imageMap = {};
@@ -186,6 +187,7 @@ const postProcessContent = async (processedContent = []) => {
         data,
         isDraft: data.draft,
         nodeData,
+        siteMetadata,
       });
       const pageContent = generateOuterHtml({ html, styles, head });
       promises.push(
@@ -200,6 +202,7 @@ const postProcessContent = async (processedContent = []) => {
             imageMap,
             // include previously generated data so we don't lose it
             data,
+            siteMetadata,
           }),
         ),
       );
