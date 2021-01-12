@@ -29,12 +29,149 @@ const TagsHomePageTemplate = require('../frontend/pages/Tags.svelte').default;
  */
 
 /**
+ * Dynamically creates nodes for paginated lists of nodes
+ *
+ * Injects the following props into the given component
+ * - nodes: all the nodes on the current page
+ * - pageNumber: starting at 1
+ * - numPages: the number of pages
+ * - pagination: an array of lists to each page in the pagination
+ *
+ * @param {object} param0
+ * @param {array} param0.nodes
+ * @param {number => string} param0.slugify transforms the page number into a slug without extension, e.g. slugify(1) === blog/page-1
+ * @param {*} param0.Component the component to render
+ * @param {number} param0.perPage how many nodes per page
+ * @returns {array} of dynamically created nodes
+ */
+const paginateNodes = ({ nodes, perPage = 10, slugify, Component }) => {
+  const chunks = nodes.map((node, i) => (i % perPage === 0 ? nodes.slice(i, i + perPage) : null)).filter((a) => a);
+
+  // create a linking mechanism
+  // so that <a href="blog-page-1.dynamic">Page 1</a> will be replaced with the link to the final html
+  const pagination = chunks.map((pageNodes, i) => `${slugify(i)}.dynamic`);
+  const paginatedNodes = chunks.map((pageNodes, i) => ({
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      initialPath: `${slugify(i)}.dynamic`, // useful for reporting
+      relPath: `${slugify(i)}.dynamic`, // useful for reporting and linking
+      finalPath: `${slugify(i)}.html`,
+      // props used in component
+      nodes: pageNodes,
+      pageNumber: i + 1,
+      numPages: chunks.length,
+      pagination,
+    },
+    // the rendering component
+    Component,
+  }));
+
+  return paginatedNodes;
+};
+
+// TODO: look into name, e.g. taxonomy, classification, group; what do other projects call it?
+/**
+ * Dynamically creates nodes for taxonomy pages and their terms
+ * 
+ * NOTE: a taxonomy is what we're calling a group of node classification, and a term is a single node classification in that group.
+ 
+ * For example, imagine that every page has a category
+ * e.g. nodes = [{category: "foo", content: "Lorem"}, {category: "bar", content: "Ipsum"}, {category: "foo", content: "Dolor"}]
+ *   The taxonomy is "category", and the terms are "foo" and "bar"
+ *   It could be represented as
+ *   categories = {"foo": {nodes: [p1, p3]}, "bar": {nodes: [p2]}}
+ * 
+ * Or, for example, imagine that every page has several tags
+ * e.g. nodes = [{tags: ["foo"], content: "Lorem"}, {tags: ["foo", "bar"], content: "Ipsum"}, {tags: ["bar"], content: "Dolor"}]
+ *   The taxonomy is "tag", and the terms are "foo" and "bar"
+ *   It could be represented as
+ *   tags = {"foo": {nodes: [p1, p2]}, "bar": {nodes: [p2, p3]}}
+ * 
+ * Creates a page for every term, injecting the following props into the Component
+ * - nodes: all the nodes for the current term in the taxonomy
+ * - taxonomy: the entire taxonomy {[string]: { path: string, nodes: Array<node>}}, e.g. for tags: {"foo": {nodes: [p1, p2], path: 'slug-of/foo.dynamic'}, "bar": {nodes: [p2, p3], path: 'slug-of/bar.dynamic'}}
+ * - term: the name of the term, e.g. "foo"
+ * - taxonomyHome: the slug to the taxonomy
+ * 
+ * Creates a single page for the taxonomy, injecting the following props into the TaxonomyComponent
+ * - taxonomy: the entire taxonomy {[string]: { path: string, nodes: Array<node>}}, e.g. for tags: {"foo": {nodes: [p1, p2], path: 'slug-of/foo.dynamic'}, "bar": {nodes: [p2, p3], path: 'slug-of/bar.dynamic'}}
+ * 
+ * @param {object} param0
+ * @param {array} param0.nodes
+ * @param {object => array} param0.getNodeTerms given a node, return the desired terms as an array, e.g. for categories getNodeTerms = (node)=>[node.data.frontmatter.category]
+ * @param {string => string} param0.slugify transforms the page number into a slug without extension, e.g. slugify("my category") === blog/category/my-category
+ * @param {string} param0.taxonomySlug the slug for the taxonomy, e.g. "blog/categories"
+ * @param {*} param0.Component the component to render a single term
+ * @param {*} param0.TaxonomyComponent the component to render the taxonomy home
+ */
+const createTaxonomyPages = ({ nodes, slugify, taxonomySlug, getNodeTerms, Component, TaxonomyComponent }) => {
+  // Get a map of terms in taxonomy
+  // TODO: see if this exists in lodash
+  // e.g.
+  // {
+  //   test: { path: taxonomy-page-test.dynamic, nodes: [p1, p2, p3, p4],},
+  //   foo: { path: taxonomy-page-foo.dynamic, nodes: [p5, p6],},
+  //   uncategorized: { path: taxonomy-page-uncategorized.dynamic, nodes: [p7, p8, p9],},
+  // }
+  const terms = nodes.reduce((prevTerms, node) => {
+    const nodeTerms = getNodeTerms(node);
+    nodeTerms.forEach((termName = '') => {
+      if (!prevTerms[termName]) {
+        // eslint-disable-next-line no-param-reassign
+        prevTerms[termName] = { path: `${slugify(termName)}.dynamic`, nodes: [] };
+      }
+      prevTerms[termName].nodes.push(node);
+    });
+    return prevTerms;
+  }, {});
+
+  // create individual pages for each term
+  const termPageNodes = Object.entries(terms).map(([termName, { path, nodes: termNodes }]) => ({
+    data: {
+      // props used for render
+      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      // note that the path already has a `.dynamic`
+      initialPath: path, // useful for reporting
+      relPath: path, // useful for reporting and linking
+      finalPath: path.replace(/\.dynamic$/, '.html'),
+      // props used in component
+      nodes: termNodes,
+      taxonomy: terms,
+      term: termName,
+      taxonomyHome: `${taxonomySlug}.dynamic`,
+    },
+    // the rendering component
+    Component,
+  }));
+
+  // create term home
+  const taxonomyNode = TaxonomyComponent
+    ? {
+        data: {
+          // props used for render
+          // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+          initialPath: `${taxonomySlug}.dynamic`, // useful for reporting
+          relPath: `${taxonomySlug}.dynamic`, // useful for reporting and linking
+          finalPath: `${taxonomySlug}.html`,
+          // props used in component
+          taxonomy: terms,
+        },
+        // the rendering component
+        Component: TaxonomyComponent,
+      }
+    : null;
+
+  return taxonomyNode ? [taxonomyNode, ...termPageNodes] : termPageNodes;
+};
+
+/**
  * Create pages dynamically
  * @param {array} content all content nodes
  * @return {array} of new content nodes
  */
 const createPages = (content) => {
-  // TODO: Create helper function for this -- basically finding members of a collection and then create a pagination
+  const getSlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
 
   // ///////////////////////////
   // BLOG FEED /////////////////
@@ -55,33 +192,13 @@ const createPages = (content) => {
     })
     .map((node) => ({ path: node.data.relPath, frontmatter: node.data.frontmatter, seo: node.data.seo }));
 
-  // Break the post up into chunks of 5
-  // e.g. [[p1, p2, p3, p4, p5], [p6, p7]]
-  const perPage = 5;
-  const blogPostChunks = blogPosts
-    .map((node, i) => (i % perPage === 0 ? blogPosts.slice(i, i + perPage) : null))
-    .filter((a) => a);
-
-  // create a linking mechanism
-  // so that <a href="blog-page-1.dynamic">Page 1</a> will be replaced with the link to the final html
-  const getPageSlug = (i) => `blog-page-${i + 1}.dynamic`;
-  const blogFeedPagination = blogPostChunks.map((posts, i) => getPageSlug(i));
-  const blogFeedNodes = blogPostChunks.map((posts, i) => ({
-    data: {
-      // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
-      initialPath: getPageSlug(i), // useful for reporting
-      relPath: getPageSlug(i), // useful for reporting and linking
-      finalPath: i === 0 ? `/blog/index.html` : `/blog/page-${i + 1}.html`,
-      // props used in component
-      posts,
-      pageNumber: i + 1,
-      numPages: blogPostChunks.length,
-      pagination: blogFeedPagination,
-    },
-    // the rendering component
+  // create paginated blog feed Nodes
+  const blogFeedNodes = paginateNodes({
+    nodes: blogPosts,
+    slugify: (i) => (i === 0 ? `/blog/index` : `/blog/page-${i + 1}`),
+    perPage: 10,
     Component: BlogFeedPageTemplate,
-  }));
+  });
 
   // TODO: Create helper function for this -- tags and categories are the same kind of operation, associating nodes with a classification,
   // then creating a page for each member of the classifier. The main difference is that a page can have one category and several tags
@@ -89,120 +206,29 @@ const createPages = (content) => {
   // ///////////////////////////
   // CATEGORIES ////////////////
   // ///////////////////////////
-  // create a linking mechanism
-  // so that <a href="category-page-foo-bar.dynamic">Foo bar category</a> will be replaced with the link to the final html
-  const getCategorySlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
-  const getCategoryDynamicPath = (name) => `category-page-${getCategorySlug(name)}.dynamic`;
-  const categoryListPagePath = `categories-page.dynamic`;
-  // Get a map of categories
-  // e.g.
-  // TODO: see if this exists in lodash
-  // {
-  //   test: { path: category-page-test.dynamic, posts: [p1, p2, p3, p4],},
-  //   foo: { path: category-page-foo.dynamic, posts: [p5, p6],},
-  //   uncategorized: { path: category-page-uncategorized.dynamic, posts: [p7, p8, p9],}, // <== generated for pages without categories
-  // }
-  const categories = blogPosts.reduce((prevCategories, node) => {
-    const categoryName =
-      node.frontmatter && node.frontmatter.category ? String(node.frontmatter.category).toLowerCase() : 'uncategorized';
-    if (!prevCategories[categoryName]) {
-      // eslint-disable-next-line no-param-reassign
-      prevCategories[categoryName] = { path: getCategoryDynamicPath(categoryName), posts: [] };
-    }
-    prevCategories[categoryName].posts.push(node);
-    return prevCategories;
-  }, {});
-
-  // create individual pages for each category
-  const categoryNodes = Object.entries(categories).map(([categoryName, { path, posts }]) => ({
-    data: {
-      // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
-      initialPath: path, // useful for reporting
-      relPath: path, // useful for reporting and linking
-      finalPath: `/blog/category/${getCategorySlug(categoryName)}.html`,
-      // props used in component
-      posts,
-      categories,
-      name: categoryName,
-      categoryHome: categoryListPagePath,
-    },
-    // the rendering component
+  const [categoryHomeNode, ...categoryNodes] = createTaxonomyPages({
+    nodes: blogPosts,
+    slugify: (name) => `/blog/categories/${getSlug(name)}`,
+    taxonomySlug: `/blog/categories/index`,
+    getNodeTerms: (node) => [
+      node.frontmatter && node.frontmatter.category ? String(node.frontmatter.category).toLowerCase() : 'uncategorized',
+    ],
     Component: CategoryPageTemplate,
-  }));
-
-  // create category home
-  const categoryHomeNode = {
-    data: {
-      // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
-      initialPath: categoryListPagePath, // useful for reporting
-      relPath: categoryListPagePath, // useful for reporting and linking
-      finalPath: `/blog/categories.html`,
-      // props used in component
-
-      categories,
-    },
-    // the rendering component
-    Component: CategoriesHomePageTemplate,
-  };
+    TaxonomyComponent: CategoriesHomePageTemplate,
+  });
 
   // ///////////////////////////
   // TAGS //////////////////////
   // ///////////////////////////
-  // create a linking mechanism
-  // so that <a href="category-page-foo-bar.dynamic">Foo bar category</a> will be replaced with the link to the final html
-  const getTagSlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
-  const getTagDynamicPath = (name) => `tag-page-${getCategorySlug(name)}.dynamic`;
-  const tagListPagePath = `tag-page.dynamic`;
-  // Get a map of tags
-  const tags = blogPosts.reduce((prevTags, node) => {
-    // TODO: here, we're assuming it's an array. Do some type checking
-    const tagNames = node.frontmatter && node.frontmatter.tags ? node.frontmatter.tags : [];
-    tagNames.forEach((tag = '') => {
-      const tagName = String(tag).toLowerCase();
-      if (!prevTags[tagName]) {
-        // eslint-disable-next-line no-param-reassign
-        prevTags[tagName] = { path: getTagDynamicPath(tagName), posts: [] };
-      }
-      prevTags[tagName].posts.push(node);
-    });
-
-    return prevTags;
-  }, {});
-
-  // create individual pages for each tag
-  const tagNodes = Object.entries(tags).map(([tagName, { path, posts }]) => ({
-    data: {
-      // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
-      initialPath: path, // useful for reporting
-      relPath: path, // useful for reporting and linking
-      finalPath: `/blog/tag/${getTagSlug(tagName)}.html`,
-      // props used in component
-      posts,
-      tags,
-      name: tagName,
-      tagsHome: tagListPagePath,
-    },
-    // the rendering component
+  const [tagHomeNode, ...tagNodes] = createTaxonomyPages({
+    nodes: blogPosts,
+    slugify: (name) => `/blog/tags/${getSlug(name)}`,
+    taxonomySlug: `/blog/tags/index`,
+    getNodeTerms: (node) =>
+      ((node.frontmatter && node.frontmatter.tags) || []).map((tagName) => String(tagName).toLowerCase()),
     Component: TagPageTemplate,
-  }));
-
-  // create tag home
-  const tagHomeNode = {
-    data: {
-      // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
-      initialPath: tagListPagePath, // useful for reporting
-      relPath: tagListPagePath, // useful for reporting and linking
-      finalPath: `/blog/tags.html`,
-      // props used in component
-      tags,
-    },
-    // the rendering component
-    Component: TagsHomePageTemplate,
-  };
+    TaxonomyComponent: TagsHomePageTemplate,
+  });
 
   return [...blogFeedNodes, ...categoryNodes, categoryHomeNode, ...tagNodes, tagHomeNode];
 };

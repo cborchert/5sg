@@ -20,7 +20,7 @@ const REGEX_TRAILING_SPACE = /\s$/;
 // matches any final non-alpha numeric characters
 const REGEX_TRAILING_NON_ALPHA_NUMERICS = /[^A-Za-z0-9]+$/;
 // matches links starting with http://, https://, file://, //, etc.
-const REGEX_EXTERNAL_LINK = /[^A-Za-z0-9]*:?\/\/$/;
+const REGEX_EXTERNAL_LINK = /^[A-Za-z0-9]*:?\/\//;
 
 module.exports = {
   REGEX_EXTENSION,

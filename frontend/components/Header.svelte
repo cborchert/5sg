@@ -55,8 +55,8 @@
     <ul>
       <li><a href="/">home</a></li>
       <li><a href="/blog/">blog</a></li>
-      <li><a href="/blog/tags.html">tags</a></li>
-      <li><a href="/blog/categories.html">categories</a></li>
+      <li><a href="/blog/tags/">tags</a></li>
+      <li><a href="/blog/categories/">categories</a></li>
     </ul>
   </nav>
 </header>
