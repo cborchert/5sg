@@ -73,12 +73,6 @@ module.exports = {
     plugins: [
       // NOTE: this is here for demo purposes, but it actually adds
       { use: minifyHtml, priority: -100 },
-      {
-        use: () => {
-          console.log('heeey');
-        },
-        priority: -100,
-      },
     ],
   },
 };
