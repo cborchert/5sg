@@ -22,7 +22,7 @@ try {
   // eslint-disable-next-line global-require
   config = require('../config/config.js');
 } catch (err) {
-  error('ERROR: No config file in config/config.js');
+  error('ERROR: No config file in config/config.js using empty config');
   config = {};
 }
 
@@ -360,7 +360,7 @@ async function generateContent() {
 
   // create dynamic pages
   const dynamicPages =
-    config && config.createPages ? config.createDynamicPages([...publishableContent, ...processedPages]) : [];
+    config && config.createDynamicPages ? config.createDynamicPages([...publishableContent, ...processedPages]) : [];
 
   // get final processed HTML content and the images to be processed
   const { results: finalContent = [], images = [] } = await postProcessContent([

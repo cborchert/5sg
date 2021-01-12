@@ -10,6 +10,17 @@ const {
   REGEX_REL_DIR,
   REGEX_EXTERNAL_LINK,
 } = require('./utils/regex.js');
+const { error } = require('./utils/reporting.js');
+
+// conditionally include cofig
+let config;
+try {
+  // eslint-disable-next-line global-require
+  config = require('../config/config.js');
+} catch (err) {
+  error('ERROR: No config file in config/config.js');
+  config = {};
+}
 
 /**
  * A rehype plugin to replace relative links with absolute links
@@ -116,17 +127,55 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
 };
 
 // create a processor which will be used to parse or process a valid markdown string or file
-const postProcessor = unified()
+// Define plugins
+const standardPlugins = [
   // HTML to AST
-  .use(rehypeParse)
+  // should be the first thing to happen
+  // TODO: maybe we DON'T need to switch back to AST before doing our work.
+  //  it could save a lot of processing time to be able to simply modify the HTML in place
+  //  in that case, we would not need to reconvert the AST back into HTML
+  { use: rehypeParse, priority: 100 },
   // Replace relative links
-  .use(replaceRelativeLinks)
+  { use: replaceRelativeLinks, priority: 50 },
   // Better images
-  .use(replaceImageLinks)
+  { use: replaceImageLinks, priority: 50 },
   // back to HTML
-  .use(rehypeStringify)
-  // TODO: minify the html (build only, this adds a few seconds to build time)
-  // .use(require('rehype-preset-minify'))
-  .freeze();
+  // should be the last thing to happen
+  { use: rehypeStringify, priority: 0 },
+];
 
-module.exports = postProcessor;
+// get custom defined plugins
+const customPlugins = (config && config.processing && config.postProcessing.plugins) || [];
+
+// order plugins and extract their "use" props
+const plugins = [...standardPlugins, ...customPlugins]
+  .sort((a, b) => {
+    try {
+      const { priority: priorityA = 0 } = a;
+      const { priority: priorityB = 0 } = b;
+      return priorityA > priorityB ? -1 : 1;
+    } catch (err) {
+      error('ERROR with post processor plugin definition while determining priority');
+      return 0;
+    }
+  })
+  .map((plugin) => {
+    try {
+      const { use } = plugin;
+      if (typeof use !== 'function' && typeof use !== 'object') {
+        throw new Error('PLUGIN HAS NONFUNCTIONAL USE PROP');
+      }
+      return use;
+    } catch (err) {
+      error('ERROR with post processor plugin definition: invalid "use" property');
+      return null;
+    }
+  })
+  .filter((a) => a);
+
+// apply each plugin to the processor
+// TODO: technically, the .use method mutates the processor, so the return isn't necessary
+// use a foreach?
+const postProcessor = plugins.reduce((prev, plugin) => (plugin ? prev.use(plugin) : prev), unified());
+
+module.exports = postProcessor.freeze();

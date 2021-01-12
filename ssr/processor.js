@@ -6,16 +6,20 @@ const frontmatter = require('remark-frontmatter');
 const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
-// OPTIONAL plugins, which will increase build time
-// NOTE these four, taken together, add 2 seconds to build 1012 nodes which used to take 7.5 seconds (adding 25%)
-const gfm = require('remark-gfm');
-const gemoji = require('remark-gemoji');
-const footnotes = require('remark-footnotes');
-const highlight = require('remark-highlight.js');
-
 const { EXTRACT_LIMIT } = require('./utils/constants.js');
 const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./utils/regex.js');
 const { getPaths } = require('./utils/paths.js');
+const { error } = require('./utils/reporting.js');
+
+// conditionally include cofig
+let config;
+try {
+  // eslint-disable-next-line global-require
+  config = require('../config/config.js');
+} catch (err) {
+  error('ERROR: No config file in config/config.js');
+  config = {};
+}
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
@@ -121,26 +125,54 @@ const setFileInfo = () => (tree, file = {}) => {
   data.created = info.birthtime;
 };
 
-// create a processor which will be used to parse or process a valid markdown string or file
-const processor = remark()
-  .use(frontmatter)
-  .use(parseFrontmatter)
-  .use(extractSeo)
-  .use(setIsDraft)
-  .use(setDataPaths)
-  .use(setFileInfo)
-  .use(setTemplate)
-  // NOTE: using additional plugins will add weight to the compiler, use sparsely
-  // OPTIONAL: GitHub Flavored Markdown https://github.github.com/gfm/ for tables, etc.
-  .use(gfm)
-  // OPTIONAL: gemoji replacement like :) or :+1:
-  .use(gemoji)
-  // OPTIONAL: pandoc style footnotes
-  .use(footnotes)
-  // OPTIONAL: code formatting using highlight.js. Prism was too heavyweight
-  // note that we're including the css in Globals.svelte
-  .use(highlight)
-  .use(html)
-  .freeze();
+// Create a processor which will be used to parse or process a valid markdown string or file
+// Define plugins
+const standardPlugins = [
+  { use: frontmatter, priority: 100 },
+  { use: parseFrontmatter, priority: 95 },
+  { use: extractSeo, priority: 50 },
+  { use: setIsDraft, priority: 50 },
+  { use: setDataPaths, priority: 50 },
+  { use: setFileInfo, priority: 50 },
+  { use: setTemplate, priority: 50 },
+  // should be the last thing to happen
+  { use: html, priority: -100 },
+];
 
-module.exports = processor;
+// get custom defined plugins
+const customPlugins = (config && config.processing && config.processing.plugins) || [];
+
+// order plugins and extract their "use" props
+const plugins = [...standardPlugins, ...customPlugins]
+  .sort((a, b) => {
+    try {
+      const { priority: priorityA = 0 } = a;
+      const { priority: priorityB = 0 } = b;
+      return priorityA > priorityB ? -1 : 1;
+    } catch (err) {
+      error('ERROR with processor plugin definition while determining priority');
+      return 0;
+    }
+  })
+  .map((plugin) => {
+    try {
+      const { use } = plugin;
+      if (typeof use !== 'function' && typeof use !== 'object') {
+        throw new Error('PLUGIN HAS NONFUNCTIONAL USE PROP');
+      }
+      return use;
+    } catch (err) {
+      error('ERROR with processor plugin definition: invalid "use" property');
+      return null;
+    }
+  })
+  .filter((a) => a);
+
+// apply each plugin to the processor
+const processor = plugins.reduce((prev, plugin) => {
+  // TODO: technically, the .use method mutates the processor, so the return isn't necessary
+  // use a foreach?
+  return plugin ? prev.use(plugin) : prev;
+}, remark());
+
+module.exports = processor.freeze();
