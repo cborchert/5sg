@@ -13,9 +13,9 @@ const gemoji = require('remark-gemoji');
 const footnotes = require('remark-footnotes');
 const highlight = require('remark-highlight.js');
 
-const { EXTRACT_LIMIT } = require('./util/constants.js');
-const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./util/strings.js');
-const { getPaths } = require('./util/paths.js');
+const { EXTRACT_LIMIT } = require('./utils/constants.js');
+const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./utils/regex.js');
+const { getPaths } = require('./utils/paths.js');
 
 /**
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file

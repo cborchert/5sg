@@ -1,8 +1,8 @@
 const process = require('process');
 
-const { IS_DEV, PORT } = require('./ssr/util/constants.js');
-const { deletePreviousBuild, copyStaticFiles } = require('./ssr/util/io.js');
-const { log, forceLog } = require('./ssr/util/reporting.js');
+const { IS_DEV, PORT } = require('./ssr/utils/constants.js');
+const { deletePreviousBuild, copyStaticFiles } = require('./ssr/utils/io.js');
+const { log, forceLog } = require('./ssr/utils/reporting.js');
 const generateContent = require('./ssr/generateContent.js');
 
 // on exit give an update
@@ -20,7 +20,7 @@ if (IS_DEV) {
   const express = require('express');
   const app = express();
 
-  app.use(express.static('build'));
+  app.use(express.static('dist'));
 
   // Redirect to a 404 page as a fallback (on errors)
   app.use((req, res) => {

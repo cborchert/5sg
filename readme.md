@@ -188,3 +188,19 @@ Once obtained, the permalink is sanitized:
 - Only alpha numeric characters, plus \_ and - are allowed (the rest are removed. Désolé les français, mais les-franc-maçons.md deviendra les-franc-maons.html 🤷‍♀️.)
 - The permalink is transformed to lowercase
 - We replace the extension with `.html`
+
+## Other notes
+
+### node version
+
+Node 12 is necessary for the majority of unified (remark/rehype) plugins. Unfortunaltely, newer versions such as 14 is not supported. I'd recommend using [nvm](https://github.com/nvm-sh/nvm) to use the correct version.
+
+```terminal
+# install nvm using cURL https://github.com/nvm-sh/nvm#install--update-script
+# install the version of node identified in .nvmrc
+> nvm install
+# use the version of node identified in .nvmrc
+> nvm use
+```
+
+If you run into an error while doing `npm install` or `yarn`, then try reading the message -- it is probably your node version which is incorrect because of the unified plugins.

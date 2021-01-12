@@ -9,7 +9,7 @@ const {
   REGEX_LEADING_SLASH,
   REGEX_REL_DIR,
   REGEX_EXTERNAL_LINK,
-} = require('./util/strings.js');
+} = require('./utils/regex.js');
 
 /**
  * A rehype plugin to replace relative links with absolute links

@@ -6,18 +6,25 @@ const path = require('path');
 const vfile = require('vfile');
 
 // import local utils
-const generateOuterHtml = require('./util/generateOuterHtml.js');
+const generateOuterHtml = require('./utils/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
-const createPages = require('./createPages.js');
-const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR } = require('./util/constants.js');
-const { log, forceLog, extendedError } = require('./util/reporting.js');
-const { writeContentToPath, processImage, getFiles } = require('./util/io.js');
-const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH } = require('./util/strings.js');
-const { getPaths } = require('./util/paths');
-const config = require('../config.js');
-
+const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR } = require('./utils/constants.js');
+const { log, forceLog, extendedError, error } = require('./utils/reporting.js');
+const { writeContentToPath, processImage, getFiles } = require('./utils/io.js');
+const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH } = require('./utils/regex.js');
+const { getPaths } = require('./utils/paths');
 const DefaultContentTemplate = require('../frontend/templates/Default.svelte').default;
+
+// conditionally include cofig
+let config;
+try {
+  // eslint-disable-next-line global-require
+  config = require('../config/config.js');
+} catch (err) {
+  error('ERROR: No config file in config/config.js');
+  config = {};
+}
 
 /**
  * Given settled promises, get fulfilled and handle the errors
@@ -181,7 +188,6 @@ const postProcessContent = async (processedContent = []) => {
 
       // only generate publishable content
       // inject the data and html into the template
-      // TODO: Handle mutliple templates
       const { html, css: { code: styles = '' } = {}, head } = Template.render({
         htmlContent,
         data,
@@ -353,7 +359,8 @@ async function generateContent() {
   const processedPages = processPages(pageFiles);
 
   // create dynamic pages
-  const dynamicPages = createPages([...publishableContent, ...processedPages]);
+  const dynamicPages =
+    config && config.createPages ? config.createDynamicPages([...publishableContent, ...processedPages]) : [];
 
   // get final processed HTML content and the images to be processed
   const { results: finalContent = [], images = [] } = await postProcessContent([
