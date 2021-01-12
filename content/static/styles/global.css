@@ -18,3 +18,8 @@ a[target]::after {
   color: rgba(0, 0, 0, 0.5);
   font-weight: bold;
 }
+
+pre {
+  overflow-x: auto;
+  max-width: 100%;
+}

@@ -32,11 +32,11 @@ cursu satyri urbis, non. Nota inducta vocis pectus Naryciusque tamen: hac quid
 
 ## Mucronem morsusque orbem
 
-Dum templo stipite ab iam adeo aut tibique auro. Unam constiterat 
+Dum templo stipite ab iam adeo aut tibique auro. Unam constiterat
 
 ![image number 85](/images/85.jpg)
 
- clavigeri mediamque an Achille
+clavigeri mediamque an Achille
 ventis et Saturnia auras. [neque eum dignissimos voluptatibus vitae](blog/2020/5/est-officiis-enim.md) vident ore fugit adurat
 totidemque Niseia dedit quae attonitos Acoetes faveas pectora ortu, spes.
 

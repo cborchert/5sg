@@ -10,6 +10,24 @@ tags:
 category: similique
 ---
 
+:+1:[^1]
+
+| key  | val    |
+| ---- | ------ |
+| test | my val |
+| foo  | bar    |
+
+```js
+const a = 'world';
+console.log(`Hello ${world}`);
+```
+
+$$
+L = \frac{1}{2} \rho v^2 S C_L
+$$
+
+[^1]: here's the footnote, my man
+
 # Scelerata nobis inde
 
 ## Veste pars sui et motaque mihi
@@ -17,7 +35,7 @@ category: similique
 Lorem markdownum massae prodest Peliaeque sedebant: tutela dixit passu. Cum
 pater tempora nataeque **si ictus** praemia pariterque [lacertis
 aqua](http://www.patrium-me.org/): ipso? Formosissimus idem faciemque tecta
-glomerari et exacta qui parte luxuriare maestae, intexto, Scorpion 
+glomerari et exacta qui parte luxuriare maestae, intexto, Scorpion
 
 ![image number 16](/images/16.jpg)
 
@@ -95,4 +113,4 @@ if (gigoImpact * blogData != pdf_installer_symbolic(capacitySoundStorage, 78,
 Viva cernis diu [at delectus](blog/2017/3/vero.md) culpavi Thyoneus
 tollens fronte supplice deinde in ita Aeson Sicanias femur surgimus Lenaeo;
 sorores. Ex non [agebat](http://ipse.org/quas.php), cupidisque animo atque
-*arduus cura* color luctor Interea foedari?
+_arduus cura_ color luctor Interea foedari?

@@ -3,6 +3,8 @@ const gfm = require('remark-gfm');
 const gemoji = require('remark-gemoji');
 const footnotes = require('remark-footnotes');
 const highlight = require('remark-highlight.js');
+const math = require('remark-math');
+const katex = require('rehype-katex');
 const minifyHtml = require('rehype-preset-minify');
 
 const createDynamicPages = require('./createDynamicPages.js');
@@ -21,8 +23,8 @@ module.exports = {
       { src: '/static/favicon/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
       { src: '/static/favicon/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
-    theme_color: '#ffffff',
-    background_color: '#ffffff',
+    theme_color: '#ff0000',
+    background_color: '#ff0000',
     display: 'standalone',
   },
   generateSitemap: true,
@@ -46,10 +48,25 @@ module.exports = {
     //   priority 50 => other transformations
     //   priority -100 => transform to html
     plugins: [
+      // github style markdown, including tables
       { use: gfm, priority: 25 },
+      // support emojis like :+1: => 👍
       { use: gemoji, priority: 25 },
+      // support footmark syntax
+      // My statement [^1]
+      // [^1]: My explanation
       { use: footnotes, priority: 25 },
+      // code highling for codeblocks like this:
+      // ```js
+      //   console.log("hello world");
+      // ```
+      // make sure to include the css in Globals.svelte
       { use: highlight, priority: 25 },
+      // used with rehype-katex to produce latex-isj math notation, like this
+      // $$
+      // L = \frac{1}{2} \rho v^2 S C_L
+      // $$
+      { use: math, priority: 25 },
     ],
   },
   // config for converting semi-final HTML content to final, published HTML content
@@ -70,8 +87,13 @@ module.exports = {
     //   priority 0 => transform to html
     // So, if you want to work on the AST, use priority 1 - 99
     // If you want to work on the HTML, use priority > 100 or < 0
+
+    // NOTE: these are here for demo purposes, remove them if you don't need them
     plugins: [
-      // NOTE: this is here for demo purposes, but it actually adds
+      // transform math nodes from above into final html
+      // make sure to include the css in Globals.svelte
+      { use: katex, priority: 50 },
+      // minify the final HTML, trading
       { use: minifyHtml, priority: -100 },
     ],
   },
