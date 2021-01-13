@@ -25,7 +25,7 @@
       {#each Object.entries(nodeData) as [path, node]}
         <li>
           <article>
-            <article href={path}>{(node.seo && node.seo.title) || path}</article>
+            <a href={path}>{(node.seo && node.seo.title) || path}</a>
             <p>{(node.seo && node.seo.description) || 'no discription available'}</p>
           </article>
         </li>
