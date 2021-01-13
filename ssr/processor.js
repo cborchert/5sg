@@ -98,7 +98,7 @@ const setIsDraft = () => (tree, file = {}) => {
  */
 const setTemplate = () => (tree, file = {}) => {
   const { data = {} } = file;
-  data.template = (data.frontmatter && data.frontmatter.template) || 'default';
+  data.template = (data.frontmatter && data.frontmatter.template) || 'Default';
 };
 
 /**
