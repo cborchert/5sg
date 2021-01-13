@@ -1,5 +1,12 @@
-const { REGEX_INVALID_PATH_CHARS } = require('../ssr/utils/regex.js');
 const { createTaxonomyPages, paginateNodes } = require('../ssr/utils/dynamicPageHelpers.js');
+const {
+  getCategoryNames,
+  getTagNames,
+  getCategorySlug,
+  getTagSlug,
+  tagHome,
+  categoryHome,
+} = require('./blogHelpers.js');
 
 const BlogFeedPageTemplate = require('../frontend/pages/BlogFeed.svelte').default;
 const CategoryPageTemplate = require('../frontend/pages/Category.svelte').default;
@@ -13,8 +20,6 @@ const TagsHomePageTemplate = require('../frontend/pages/Tags.svelte').default;
  * @return {array} of new content nodes
  */
 const createPages = (content) => {
-  const getSlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
-
   /**
    * Pagination: create a multipage blog feed
    */
@@ -45,11 +50,9 @@ const createPages = (content) => {
   // Categories
   const [categoryHomeNode, ...categoryNodes] = createTaxonomyPages({
     nodes: blogPosts,
-    slugify: (name) => `/blog/categories/${getSlug(name)}`,
-    taxonomySlug: `/blog/categories/index`,
-    getNodeTerms: (node) => [
-      node.frontmatter && node.frontmatter.category ? String(node.frontmatter.category).toLowerCase() : 'uncategorized',
-    ],
+    slugify: getCategorySlug,
+    taxonomySlug: categoryHome,
+    getNodeTerms: getCategoryNames,
     Component: CategoryPageTemplate,
     TaxonomyComponent: CategoriesHomePageTemplate,
   });
@@ -57,10 +60,9 @@ const createPages = (content) => {
   // Tags
   const [tagHomeNode, ...tagNodes] = createTaxonomyPages({
     nodes: blogPosts,
-    slugify: (name) => `/blog/tags/${getSlug(name)}`,
-    taxonomySlug: `/blog/tags/index`,
-    getNodeTerms: (node) =>
-      ((node.frontmatter && node.frontmatter.tags) || []).map((tagName) => String(tagName).toLowerCase()),
+    slugify: getTagSlug,
+    taxonomySlug: tagHome,
+    getNodeTerms: getTagNames,
     Component: TagPageTemplate,
     TaxonomyComponent: TagsHomePageTemplate,
   });
