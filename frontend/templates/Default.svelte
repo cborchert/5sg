@@ -47,43 +47,45 @@
 </svelte:head>
 
 <Page>
-  <header>
-    {#if title}
-      <h1>{title}</h1>
-    {/if}
-    {#if attribution}
-      <h3>{attribution}</h3>
-    {/if}
-    <h4>Categories:</h4>
-    {#if categories && categories.length > 0}
-      <ul>
-        {#each categories as category}
-          <li><a href={`${getCategorySlug(category)}.dynamic`}>{category}</a></li>
-        {/each}
-      </ul>
-    {/if}
-    {#if tags && tags.length > 0}
-      <h4>Tags:</h4>
-      <ul>
-        {#each tags as tag}
-          <li><a href={`${getTagSlug(tag)}.dynamic`}>#{tag}</a></li>
-        {/each}
-      </ul>
-    {/if}
-  </header>
-  <div>
-    {@html htmlContent}
-  </div>
-  <footer>
-    <nav>
-      <ul>
-        <li>
-          {#if prevPost}<a href={prevPost.relPath}>← {prevPost.frontmatter.title}</a>{/if}
-        </li>
-        <li>
-          {#if nextPost}<a href={nextPost.relPath}>{nextPost.frontmatter.title} →</a>{/if}
-        </li>
-      </ul>
-    </nav>
-  </footer>
+  <article>
+    <header>
+      {#if title}
+        <h1>{title}</h1>
+      {/if}
+      {#if attribution}
+        <h3>{attribution}</h3>
+      {/if}
+      <h4>Categories:</h4>
+      {#if categories && categories.length > 0}
+        <ul>
+          {#each categories as category}
+            <li><a href={`${getCategorySlug(category)}.dynamic`}>{category}</a></li>
+          {/each}
+        </ul>
+      {/if}
+      {#if tags && tags.length > 0}
+        <h4>Tags:</h4>
+        <ul>
+          {#each tags as tag}
+            <li><a href={`${getTagSlug(tag)}.dynamic`}>#{tag}</a></li>
+          {/each}
+        </ul>
+      {/if}
+    </header>
+    <div>
+      {@html htmlContent}
+    </div>
+    <footer>
+      <nav>
+        <ul>
+          <li>
+            {#if prevPost}<a href={prevPost.relPath}>← {prevPost.frontmatter.title}</a>{/if}
+          </li>
+          <li>
+            {#if nextPost}<a href={nextPost.relPath}>{nextPost.frontmatter.title} →</a>{/if}
+          </li>
+        </ul>
+      </nav>
+    </footer>
+  </article>
 </Page>

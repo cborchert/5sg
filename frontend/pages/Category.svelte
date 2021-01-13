@@ -10,8 +10,10 @@
   <ul>
     {#each nodes as { path, seo }}
       <li>
-        <a href={path}>{(seo && seo.title) || path}</a>
-        <p>{(seo && seo.description) || 'no discription available'}</p>
+        <article>
+          <a href={path}>{(seo && seo.title) || path}</a>
+          <p>{(seo && seo.description) || 'no discription available'}</p>
+        </article>
       </li>
     {/each}
   </ul>
