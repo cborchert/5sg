@@ -1,9 +1,17 @@
 <script>
   import Page from '../components/Page.svelte';
+  import Meta from '../components/Meta.svelte';
   export let data = {};
+  export let siteMetadata = {};
   const { numPages, pageNumber, nodes, pagination } = data;
+  const meta = {
+    siteMetadata,
+    title: `Blog feed, page ${pageNumber}`,
+    description: 'All the blog posts on the example site',
+  };
 </script>
 
+<Meta {...meta} />
 <Page>
   <h1>Blog page {pageNumber} of {numPages}</h1>
   <h2>Posts</h2>

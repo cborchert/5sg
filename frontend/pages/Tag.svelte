@@ -1,11 +1,21 @@
 <script>
   import Page from '../components/Page.svelte';
+  import Meta from '../components/Meta.svelte';
+
+  export let siteMetadata = {};
   export let data = {};
-  const { nodes, name, taxonomy: tags, taxonomyHome: tagsHome } = data;
+
+  const { nodes, term, taxonomy: tags, taxonomyHome: tagsHome } = data;
+  const meta = {
+    siteMetadata,
+    title: `Tag: ${term}`,
+    description: `All the blog posts with the tag of ${term} `,
+  };
 </script>
 
+<Meta {...meta} />
 <Page>
-  <h1>Tag: {name}</h1>
+  <h1>Tag: {term}</h1>
   <h2>Posts</h2>
   <ul>
     {#each nodes as { path, seo }}

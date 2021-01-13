@@ -1,5 +1,6 @@
 <script>
   import Page from '../components/Page.svelte';
+  import Meta from '../components/Meta.svelte';
   import { getCategoryNames, getCategorySlug, getTagNames, getTagSlug } from '../../config/blogHelpers';
 
   // the rendered content from the source
@@ -9,13 +10,11 @@
   // the data relative to all nodes
   export let nodeData = {};
 
-  // extract site title for use in title tag
   export let siteMetadata = {};
-  const { name: siteTitle = '' } = siteMetadata;
+  const meta = { siteMetadata, ...(data.seo || {}) };
 
   // extract frontmatter for seo and page header/attrution
   const frontmatter = data.frontmatter || {};
-  const { title: metaTitle, description: metaDescription } = data.seo || {};
   const { title, date, author } = frontmatter;
   const attribution = `${date ? `Written on ${new Date(date).toDateString()} ` : ''} ${
     author ? `by ${author} ` : ''
@@ -41,11 +40,7 @@
   const nextPost = currentIndex < blogPages.length - 1 && blogPages[currentIndex + 1];
 </script>
 
-<svelte:head>
-  <title>{metaTitle || ''} -- {siteTitle}</title>
-  <meta name="description" content={metaDescription} />
-</svelte:head>
-
+<Meta {...meta} />
 <Page>
   <article>
     <header>

@@ -1,9 +1,15 @@
 <script>
   import Page from '../components/Page.svelte';
+  import Meta from '../components/Meta.svelte';
+
+  export let siteMetadata = {};
   export let data = {};
+
+  const meta = { siteMetadata, title: 'Tags', description: 'All the tags on the example site' };
   const { taxonomy: tags } = data;
 </script>
 
+<Meta {...meta} />
 <Page>
   <h1>Tags:</h1>
   <ul>
