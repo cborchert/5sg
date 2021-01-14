@@ -10,19 +10,21 @@ const generateOuterHtml = require('./utils/generateOuterHtml.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
 const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR } = require('./utils/constants.js');
-const { log, forceLog, extendedError, error } = require('./utils/reporting.js');
+const { log, forceLog, extendedError, error, time, timeEnd, forceTime, forceTimeEnd } = require('./utils/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./utils/io.js');
 const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH } = require('./utils/regex.js');
 const { getPaths } = require('./utils/paths');
-const DefaultContentTemplate = require('../frontend/templates/Default.svelte').default;
+
+// TODO: we should *not* depend on something in the src folder in the lib
+const DefaultContentTemplate = require('../src/client/templates/Default.svelte').default;
 
 // conditionally include cofig
 let config;
 try {
   // eslint-disable-next-line global-require
-  config = require('../config/config.js');
+  config = require('../config.js');
 } catch (err) {
-  error('ERROR: No config file in config/config.js using empty config');
+  error('ERROR: No config file in config.js using empty config');
   config = {};
 }
 
@@ -335,71 +337,73 @@ const createManifest = () => {
  * Process content and images, and write to build filder
  */
 async function generateContent() {
+  forceTime('Build complete');
   forceLog('Generating content...');
 
-  // console.time('Getting files');
+  time('Getting files');
   // get all markdown files for processing
   const contentFiles = getFiles(CONTENT_DIR, ['md']);
 
   forceLog(`Content nodes found: ${contentFiles.length}`);
-  // console.timeEnd('Getting files');
+  timeEnd('Getting files');
 
-  // console.time('Processing content');
+  time('Processing content');
   // render html content and meta data for each content file
   const processedContent = await processContent(contentFiles);
 
   // remove drafts if we're not allowing drafts to be published
   const publishableContent = RENDER_DRAFTS ? processedContent : processedContent.filter(({ data }) => !data.draft);
-  // console.timeEnd('Processing content');
+  timeEnd('Processing content');
 
-  // console.time('Getting pages');
+  time('Getting pages');
   // get all svelte files for processing
   const pageFiles = getFiles(CONTENT_DIR, ['svelte']);
 
   forceLog(`Page nodes found: ${pageFiles.length}`);
-  // console.timeEnd('Getting pages');
+  timeEnd('Getting pages');
 
-  // console.time('Processing pages');
+  time('Processing pages');
   // Process any .svelte files
   // making sure that the output is {contents: "", Component: require(path).default, data: {initialPath, fileInfo, etc. }}
   // TODO: Import svx as well
   const processedPages = processPages(pageFiles);
-  // console.timeEnd('Processing pages');
+  timeEnd('Processing pages');
 
-  // console.time('Creating dynamic pages');
+  time('Creating dynamic pages');
   // create dynamic pages
   const dynamicPages =
     config && config.createDynamicPages ? config.createDynamicPages([...publishableContent, ...processedPages]) : [];
-  // console.timeEnd('Creating dynamic pages');
+  timeEnd('Creating dynamic pages');
 
-  // console.time('Post processing html');
+  time('Post processing html');
   // get final processed HTML content and the images to be processed
   const { results: finalContent = [], images = [] } = await postProcessContent([
     ...publishableContent,
     ...processedPages,
     ...dynamicPages,
   ]);
-  // console.timeEnd('Post processing html');
+  timeEnd('Post processing html');
 
-  // console.time('Publishing content');
+  time('Publishing content');
   // write final content to files
   forceLog(`Building html for ${finalContent.length} nodes...`);
   publishContent(finalContent);
-  // console.timeEnd('Publishing content');
+  timeEnd('Publishing content');
 
-  // console.time('Publishing images');
+  time('Publishing images');
   // process and write images
   forceLog(`Processing ${Object.keys(images).length} images...`);
   publishImages(images);
-  // console.timeEnd('Publishing images');
+  timeEnd('Publishing images');
 
-  // console.time('Publishing meta');
+  time('Publishing meta');
   // finishing touches: sitemap and sitemanifest
   createSiteMap(finalContent);
   createManifest();
-  // console.timeEnd('Publishing meta');
+  timeEnd('Publishing meta');
 
   forceLog(`Done`);
+  forceTimeEnd('Build complete');
 }
 
 module.exports = generateContent;

@@ -10,7 +10,12 @@ const { REPORTING_LEVEL } = require('./constants.js');
  */
 const error = REPORTING_LEVEL > 0 ? console.error : () => {};
 const log = REPORTING_LEVEL >= 2 ? console.log : () => {};
+const time = REPORTING_LEVEL >= 2 ? console.time : () => {};
+const timeEnd = REPORTING_LEVEL >= 2 ? console.timeEnd : () => {};
+
 // for messages and errors which must always be logged
+const forceTime = console.time;
+const forceTimeEnd = console.timeEnd;
 const forceLog = console.log;
 const forceError = console.error;
 const extendedError = (reason = '', message = '') => {
@@ -25,4 +30,8 @@ module.exports = {
   forceLog,
   forceError,
   extendedError,
+  time,
+  timeEnd,
+  forceTime,
+  forceTimeEnd,
 };

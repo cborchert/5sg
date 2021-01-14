@@ -32,12 +32,12 @@ const CONTENT_DIR = path.join(BASE_DIR, process.env.CONTENT_DIR || './content/')
 // where should we build the finished files?
 const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './dist/');
 // where should we look for templates
-const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './frontend/templates/');
+const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './src/client/templates/');
 
 // where should we find static files (which will be copied without processing to the build directory)?
-const STATIC_DIR = path.join(BASE_DIR, process.env.STATIC_DIR || './content/static/');
+const STATIC_DIR = path.join(BASE_DIR, './static/');
 // where should we copy static files to?
-const BUILD_STATIC_DIR = path.join(BUILD_DIR, process.env.STATIC_DIR || './static/');
+const BUILD_STATIC_DIR = path.join(BUILD_DIR, './static/');
 
 // what is the character limit for generating the extract text of a page?
 const EXTRACT_CHAR_LIMIT = process.env.EXTRACT_CHAR_LIMIT || 250;

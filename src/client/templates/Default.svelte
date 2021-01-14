@@ -1,7 +1,7 @@
 <script>
   import Page from '../components/Page.svelte';
   import Meta from '../components/Meta.svelte';
-  import { getCategoryNames, getCategorySlug, getTagNames, getTagSlug } from '../../config/blogHelpers';
+  import { getCategoryNames, getCategorySlug, getTagNames, getTagSlug } from '../../shared/blogHelpers';
 
   // the rendered content from the source
   export let htmlContent = '';

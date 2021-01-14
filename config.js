@@ -7,7 +7,7 @@ const math = require('remark-math');
 const katex = require('rehype-katex');
 const minifyHtml = require('rehype-preset-minify');
 
-const createDynamicPages = require('./createDynamicPages.js');
+const createDynamicPages = require('./src/ssr/createDynamicPages.js');
 
 module.exports = {
   // siteMetadata is injected into every template as the prop siteMetadata

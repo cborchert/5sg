@@ -1,4 +1,4 @@
-const { createTaxonomyPages, paginateNodes } = require('../ssr/utils/dynamicPageHelpers.js');
+const { createTaxonomyPages, paginateNodes } = require('../../ssr/utils/dynamicPageHelpers.js');
 const {
   getCategoryNames,
   getTagNames,
@@ -6,13 +6,13 @@ const {
   getTagSlug,
   tagHome,
   categoryHome,
-} = require('./blogHelpers.js');
+} = require('../shared/blogHelpers.js');
 
-const BlogFeedPageTemplate = require('../frontend/pages/BlogFeed.svelte').default;
-const CategoryPageTemplate = require('../frontend/pages/Category.svelte').default;
-const CategoriesHomePageTemplate = require('../frontend/pages/Categories.svelte').default;
-const TagPageTemplate = require('../frontend/pages/Tag.svelte').default;
-const TagsHomePageTemplate = require('../frontend/pages/Tags.svelte').default;
+const BlogFeedPageTemplate = require('../client/pages/BlogFeed.svelte').default;
+const CategoryPageTemplate = require('../client/pages/Category.svelte').default;
+const CategoriesHomePageTemplate = require('../client/pages/Categories.svelte').default;
+const TagPageTemplate = require('../client/pages/Tag.svelte').default;
+const TagsHomePageTemplate = require('../client/pages/Tags.svelte').default;
 
 /**
  * Create pages dynamically

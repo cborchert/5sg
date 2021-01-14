@@ -15,9 +15,9 @@ const { error } = require('./utils/reporting.js');
 let config;
 try {
   // eslint-disable-next-line global-require
-  config = require('../config/config.js');
+  config = require('../config.js');
 } catch (err) {
-  error('ERROR: No config file in config/config.js');
+  error('ERROR: No config file in config.js');
   config = {};
 }
 

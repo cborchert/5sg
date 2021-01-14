@@ -33,7 +33,7 @@ For the moment, this means svelte files should be treated as PRESENTATIONAL comp
 5SG (working title) is a static site generator boiler plate made for simplicity. It works like this:
 
 1. You put your content in the `/content` directory as `.md` files or `.svelte` files
-2. You modify the templates in `/frontend/templates` to suit your design
+2. You modify the templates in `/src/client/templates` to suit your design
 3. You build using `yarn build`.
 
 That's it. Your site is ready to publish.

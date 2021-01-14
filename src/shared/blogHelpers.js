@@ -1,4 +1,4 @@
-const { REGEX_INVALID_PATH_CHARS } = require('../ssr/utils/regex.js');
+const { REGEX_INVALID_PATH_CHARS } = require('../../ssr/utils/regex.js');
 
 const getSlug = (name) => name.replace(REGEX_INVALID_PATH_CHARS, '').replace(/\s/g, '-');
 
