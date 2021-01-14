@@ -1,6 +1,8 @@
 <script>
   import Page from '../components/Page.svelte';
   import Meta from '../components/Meta.svelte';
+  import ArticlePreview from '../components/ArticlePreview.svelte';
+
   export let data = {};
   export let siteMetadata = {};
   const { numPages, pageNumber, nodes, pagination } = data;
@@ -16,12 +18,9 @@
   <h1>Blog page {pageNumber} of {numPages}</h1>
   <h2>Posts</h2>
   <ul>
-    {#each nodes as { path, seo }}
+    {#each nodes as node}
       <li>
-        <article>
-          <a href={path}>{(seo && seo.title) || path}</a>
-          <p>{(seo && seo.description) || 'no discription available'}</p>
-        </article>
+        <ArticlePreview {node} />
       </li>
     {/each}
   </ul>
@@ -33,3 +32,9 @@
     {/each}
   </ul>
 </Page>
+
+<style>
+  li {
+    list-style: none;
+  }
+</style>

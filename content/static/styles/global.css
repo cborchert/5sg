@@ -1,11 +1,57 @@
+:root {
+  --bg: #fff;
+  --bg-secondary: #eaeaef;
+  --bg-tertiary: #fafafa;
+  --bg-inverse: #32353f;
+
+  --primary: #32353f;
+  --inverse: #eee;
+  --accent: #05f4b7;
+  --secondary: #3498db;
+  --tertiary: #e74c3c;
+
+  --shadow: rgba(0, 0, 0, 0.6);
+  --shadow-secondary: rgba(0, 0, 0, 0.4);
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #333;
-  background: #eee;
+  font-family: 'Inter', 'Arial', sans-serif;
+  color: var(--primary);
+  background: var(--bg);
+  line-height: 1.6;
+  font-size: 18px;
 }
 
 img {
   max-width: 100%;
+}
+
+pre {
+  overflow-x: auto;
+  max-width: 100%;
+  background: var(--bg-inverse);
+  color: var(--inverse);
+  padding: 24px;
+  line-height: 2;
+  box-shadow: 4px 4px 4px var(--shadow-secondary);
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+}
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:focus {
+  color: var(--secondary);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
 }
 
 a[target]::after {
@@ -15,11 +61,21 @@ a[target]::after {
   margin-left: 4px;
   vertical-align: text-top;
   text-decoration: none;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--shadow-secondary);
   font-weight: bold;
 }
 
-pre {
-  overflow-x: auto;
-  max-width: 100%;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.25;
+  margin: 0 0 0.5em;
+}
+
+blockquote {
+  border-left: 3px var(--bg-secondary) solid;
+  padding-left: 16px;
 }

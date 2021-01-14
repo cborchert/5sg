@@ -11,22 +11,30 @@
   <!-- highlight.js theme for highlighting code blocks (for blogs and documentation sites, etc.) -->
   <link
     rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/solarized-dark.min.css" />
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/solarized-dark.min.css"
+  />
   <!-- katex styles for highlighting math blocks -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css"
     integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X"
-    crossorigin="anonymous" />
+    crossorigin="anonymous"
+  />
 
+  <!-- fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:ital@0;1&display=swap"
+    rel="stylesheet"
+  />
   <!-- import global js -->
-  <!-- turbolinks for giving page navigation a more native feel -->
-  <script defer src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
-  </script>
-</svelte:head>
+  <!-- turbolinks for giving page navigation a more native feel --><script
+    defer
+    src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js">
+  </script></svelte:head
+>
 
 <body>
-  <!-- import custom global js -- handles turbolinks and highlight.js -->
-  <script defer src="/static/scripts/global.js">
-  </script>
-</body>
+  <!-- import custom global js -- handles turbolinks and highlight.js --><script defer src="/static/scripts/global.js">
+  </script></body
+>
