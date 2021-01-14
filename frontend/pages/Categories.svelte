@@ -18,3 +18,12 @@
     {/each}
   </ul>
 </Page>
+
+<style>
+  li {
+    list-style: none;
+  }
+  ul {
+    padding: 0;
+  }
+</style>

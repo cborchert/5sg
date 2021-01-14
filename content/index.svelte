@@ -14,13 +14,25 @@
       <div>
         <div class="intro">
           <h1>Hello, {name}!</h1>
-          <h5>Welcome to the demosite for <a href="https://github.com/cborchert/5sg">CODENAME 5SG</a>.</h5>
+          <h5>Welcome to the demo site for <a href="https://github.com/cborchert/5sg">5SG</a></h5>
         </div>
         <p>
-          This site took 20 seconds to build, for 1000 interlinked blog pages, about 220 dynamically generated category,
-          blog, and tags pages, and the conversion of 100 high quality (but too large) images to correctly sized files.
+          5sg stands for <strong>s</strong>tupid <strong>s</strong>imple <strong>s</strong>velte <strong>s</strong>tatic
+          <strong>s</strong>ite <strong>g</strong>enerator, an ssg in the making which focuses on ease of development,
+          simplicity of structure, and speed of delivery. The name will probably change.
         </p>
-        <p>Take some time to explore, we'll see you again soon.</p>
+        <p>This site took 30 seconds to build on netlify, including:</p>
+        <ul>
+          <li>
+            <strong>1000</strong> interlinked blog pages with dynamically inserted sibling and category/tag navigation
+          </li>
+          <li>
+            <strong>~ 220</strong> dynamically generated <a href="/blog">blogfeed</a>,
+            <a href="/blog/categories">category</a>, and <a href="/blog/tags">tags</a> pages
+          </li>
+          <li>and the conversion of <strong>100</strong> high quality (but too large) images to sanely sized files.</li>
+        </ul>
+        <p>Take some time to explore, we'll see you again soon. 👋</p>
       </div>
     </section>
   </div>

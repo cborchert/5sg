@@ -105,15 +105,14 @@
 
   .sibling-navigation {
     display: flex;
+    flex-direction: column;
     padding: 0;
     margin: 0;
   }
   .sibling-navigation li {
     list-style: none;
     flex-grow: 1;
-  }
-  .sibling-navigation li:last-child {
-    text-align: right;
+    padding: 12px 0;
   }
 
   header {
@@ -158,6 +157,15 @@
   }
 
   footer {
-    margin-top: 36px;
+    margin-top: 32px;
+  }
+
+  @media screen and (min-width: 600px) {
+    .sibling-navigation {
+      flex-direction: row;
+    }
+    .sibling-navigation li:last-child {
+      text-align: right;
+    }
   }
 </style>

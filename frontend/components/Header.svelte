@@ -12,8 +12,6 @@
     <!-- or the final paths like this-->
     <ul>
       <li><a href="/blog/">blog</a></li>
-      <li><a href="/blog/tags/">tags</a></li>
-      <li><a href="/blog/categories/">categories</a></li>
     </ul>
   </nav>
 </header>
@@ -38,10 +36,13 @@
 
   header > span {
     flex-basis: 120px;
-    text-align: center;
     font-family: monospace;
     font-size: 2rem;
     line-height: 1;
+  }
+
+  header > span > a {
+    color: var(--primary);
   }
 
   header > nav {
