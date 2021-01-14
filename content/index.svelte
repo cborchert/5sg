@@ -1,7 +1,6 @@
 <script>
   import Page from '../frontend/components/Page.svelte';
   export const name = 'world';
-  // export let nodeData = {};
 </script>
 
 <svelte:head>
@@ -25,17 +24,6 @@
       </div>
     </section>
   </div>
-  <!-- <div slot="afterContent">
-    <p>Just to prove we can, let's list out all {nodeData.length} pages!</p>
-    <ul>
-      {#each Object.entries(nodeData) as [path, node]}
-        <li>
-          <a href={path}>{(node.seo && node.seo.title) || path}</a>
-          <p>{(node.seo && node.seo.description) || 'no discription available'}</p>
-        </li>
-      {/each}
-    </ul>
-  </div> -->
 </Page>
 
 <style>
@@ -48,5 +36,9 @@
   .intro {
     font-size: 2.5rem;
     margin-bottom: 64px;
+  }
+  h1 {
+    line-height: 1;
+    margin-bottom: 16px;
   }
 </style>

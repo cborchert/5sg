@@ -6,12 +6,6 @@
 <body>
   <Header />
   <slot name="beforeMain" />
-  <section class="bleed">
-    <slot name="bleed" />
-    <main class="main-bleed">
-      <slot name="bleedMain" />
-    </main>
-  </section>
   <main>
     <slot name="beforeContent" />
     <slot />
@@ -24,10 +18,6 @@
   main {
     max-width: 1024px;
     margin: 0 auto;
-    padding: 0 32px 64px;
-  }
-  main.main-bleed {
-    max-width: 1400px;
-    padding-bottom: 0;
+    padding: 16px 32px 64px;
   }
 </style>

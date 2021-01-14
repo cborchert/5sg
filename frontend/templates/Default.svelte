@@ -42,7 +42,7 @@
 
 <Meta {...meta} />
 <Page>
-  <div slot="bleed">
+  <div slot="beforeMain">
     {#if cover}
       <img class="cover" src={cover} alt={title} />
     {/if}

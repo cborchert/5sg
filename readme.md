@@ -159,6 +159,68 @@ For the sake of benchmarking, I've loaded ~1000 local content files of real cont
 | ----------- | ------- | -------------- | ----------------------------------------- |
 | 11 jan 2021 | f199adc | 39.39s / 9.54s | New Content, parse interlinked blog posts |
 
+### More timing notes (14 Jan 2021)
+
+As we get closer to finishing the proof of concept, I wanted to note the following timings fron generateContent.js
+
+```
+Removing previous build...
+Previous build deleted.
+Copying static files to build...
+Copied.
+Generating content...
+Content nodes found: 1000
+Getting files: 28.864ms
+Processing content: 4.393s
+Page nodes found: 2
+Getting pages: 15.573ms
+Processing pages: 13.495ms
+Creating dynamic pages: 4.046ms
+Post processing html: 10.623s
+Building html for 1145 nodes...
+Publishing content: 74.281ms
+Processing 100 images...
+Publishing images: 24.951ms
+Publishing meta: 1.312ms
+Done
+```
+
+Unsurprisingly, the things that take the longest are:
+
+1. Processing content (getting a map of initial HTML from markdown files): 4.3s
+2. PostProcessing content (transforming all rendered HTML, replacing links, etc): 10.6s
+
+What is surprising is:
+
+- These operations are more expensive by 2 - 3 orders of magnitude
+- Processing images is really quick
+
+Insights:
+
+- I/O operations are not expensive AT ALL. They are negligable. Reading 1000 md files + writing 1145 html files to disk costs ~100ms, where reading is about 1/3 the cost of writing. As an estimate, we can say that `ioTimeInSeconds = .1 * numFiles`.
+- Spending some time writing and reading cache files of processed markdown would cost milliseconds and would save up to 4 seconds. Caching processed markdown is a simple operation since markdown files have no dependencies: you can just check if the markdown file is newer than the cached html file or if the html file doesn't exist; in that case, process the markdown, otherwise, use the saved html. We do need to take into account changes in configuration as well, though (if the user adds a remark plugin, we should not serve cached markdown).
+- Caching post processed content would be the biggest save, but much more difficult to implement. Each final html file has a much more complicated dependencies tree:
+  - The html created during processing
+  - The template file used to render it
+  - The template file's dependencies
+  - The PROPS that go into the template file (which is the entire node map)
+  - The generateHtml file
+
+Of the issues mentioned above, the hardest is the _props_ problem. What we are currently doing is injecting the entire node map into the components and letting them solve the issues of sibling nodes, etc.
+
+This means that changing blog post number 1000 is affecting blog post number 2 -- whereas blog post number 1 only really cares about blog post numbers 1, 2, and 3. The best way around this is to preprocess the props and inject only what is needed, but this has a negative side effect: it hamstrings our users by providing less information, unless:
+
+1. we pass several versions of the props to each template (nodeData, siblings, blogPosts, etc.), and then we use svelte.compile to determine the props that will be used and use that as a cache key
+
+or
+
+2. we can allow the users to add a config for templates to generate the props.
+
+In either case, there's work to do, but the upshot is that we can save 4 seconds (i.e. 1/4 of build time) simply by using caching.
+
+Another avenue of investigation is to look into which parts of the postprocessing is taking the most time. If using unified to translate HTML
+takes a significant amount of time, we can simply drop unified and use simple string replacement (unified creates an AST map for the content and then traverses that in order to update the links, which may be costly). If it really is the svelte compile process, we'll have to look into the complications above.
+
 ## API Notes
 
 ### Generating page data and metadata in markdown files
