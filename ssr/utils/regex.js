@@ -1,6 +1,9 @@
+// @ts-check
+
 /**
  * REGEX constants
  */
+
 // matches final extension, including dot e.g. .html, .md, .mp4
 const REGEX_EXTENSION = /\.[^.]+$/;
 // matches any non alpha numeric character, plus _, -, /, and .

@@ -1,3 +1,5 @@
+// @ts-check
+
 /* eslint-disable no-console */
 const { REPORTING_LEVEL } = require('./constants.js');
 

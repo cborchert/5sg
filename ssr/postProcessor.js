@@ -1,3 +1,6 @@
+/**  @todo implement types */
+/**  @todo implement@ts-check */
+
 const unified = require('unified');
 const visit = require('unist-util-visit');
 const path = require('path');
@@ -24,63 +27,75 @@ try {
 
 /**
  * A rehype plugin to replace relative links with absolute links
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
-const replaceRelativeLinks = () => (tree = {}, file = {}) => {
-  const { cwd, path: filePath, dirname, nodeData = {} } = file;
-  if (!cwd || !filePath || !dirname || cwd === path) {
-    file.fail(
-      `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
-        cwd,
-        path: filePath,
-        dirname,
-      })}`,
-    );
-    return;
-  }
-
-  // get relative path of file by removing cwd from path dirname
-  const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
-
-  visit(tree, { tagName: 'a' }, ({ properties }) => {
-    // We are resassigning a param variables, which is normally a bad practice,
-    // but in this case we do want side effects 🤷‍♀️
-    /* eslint-disable no-param-reassign */
-    let { href = '' } = properties;
-
-    // replace relative urls with urls relative to the output folder
-    // remove any lead slashes
-    // e.g. ../index.md in content/sub/sub2/test.md becomes sub/index.md
-    // e.g. ./index.md in content/sub/sub2/test.md becomes sub/sub2/index.md
-    if (REGEX_REL_DIR.test(href)) {
-      href = path.join(relDirname, href);
+const replaceRelativeLinks = () => {
+  return (tree, file = {}) => {
+    const { cwd, path: filePath, dirname, nodeData = {} } = file;
+    if (!cwd || !filePath || !dirname || cwd === path) {
+      file.fail(
+        `Path or cwd of processed file incorrectly set, got: ${JSON.stringify({
+          cwd,
+          path: filePath,
+          dirname,
+        })}`,
+      );
+      return;
     }
 
-    // node information is stored without beginning slash, so we
-    const hrefKey = href.replace(REGEX_LEADING_SLASH, '');
+    // get relative path of file by removing cwd from path dirname
+    const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
-    // if the url exists in the map, use final url from the map
-    // be forgiving -- with or without leading slash will do
-    if (nodeData[hrefKey]) {
-      href = nodeData[hrefKey].finalPath;
-    } else if (nodeData[href]) {
-      href = nodeData[href].finalPath;
-    } else if (REGEX_EXTERNAL_LINK.test(href)) {
-      // non-local files should open in a new tab
-      properties.target = '_blank';
-    }
+    const visitor = ({ properties }) => {
+      // We are resassigning a param variables, which is normally a bad practice,
+      // but in this case we do want side effects 🤷‍♀️
+      /* eslint-disable no-param-reassign */
+      let { href = '' } = properties;
 
-    // update the url
-    if (href !== properties.href) properties.href = href;
-    /* eslint-enable no-param-reassign */
-  });
+      // replace relative urls with urls relative to the output folder
+      // remove any lead slashes
+      // e.g. ../index.md in content/sub/sub2/test.md becomes sub/index.md
+      // e.g. ./index.md in content/sub/sub2/test.md becomes sub/sub2/index.md
+      if (REGEX_REL_DIR.test(href)) {
+        href = path.join(relDirname, href);
+      }
+
+      // node information is stored without beginning slash, so we
+      const hrefKey = href.replace(REGEX_LEADING_SLASH, '');
+
+      // if the url exists in the map, use final url from the map
+      // be forgiving -- with or without leading slash will do
+      if (nodeData[hrefKey]) {
+        href = nodeData[hrefKey].finalPath;
+      } else if (nodeData[href]) {
+        href = nodeData[href].finalPath;
+      } else if (REGEX_EXTERNAL_LINK.test(href)) {
+        // non-local files should open in a new tab
+        properties.target = '_blank';
+      }
+
+      // update the url
+      if (href !== properties.href) properties.href = href;
+      /* eslint-enable no-param-reassign */
+    };
+
+    /** @todo fix me */
+    // @ts-ignore
+    visit(tree, { tagName: 'a' }, visitor);
+  };
 };
 
 /**
  * A rehype plugin to replace image links with correct image links, and to add them to the nodeMap for processing
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
-const replaceImageLinks = () => (tree = {}, file = {}) => {
+const replaceImageLinks = () => (tree, file = {}) => {
   const { cwd, path: filePath, dirname, imageMap = {} } = file;
   if (!cwd || !filePath || !dirname || cwd === path) {
     file.fail(
@@ -96,7 +111,8 @@ const replaceImageLinks = () => (tree = {}, file = {}) => {
   // get relative path of file by removing cwd from path dirname
   const relDirname = dirname.replace(cwd.replace(REGEX_TRAILING_SLASH, ''), '');
 
-  visit(tree, { tagName: 'img' }, async ({ properties }) => {
+  visit(tree, { tagName: 'img' }, (node) => {
+    const { properties = {} } = node;
     // We are resassigning a param variables, which is normally a bad practice,
     // but in this case we do want side effects 🤷‍♀️
     /* eslint-disable no-param-reassign */

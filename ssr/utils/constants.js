@@ -1,18 +1,26 @@
+// @ts-check
+
 require('dotenv').config();
 const path = require('path');
 
-// get the arguments used to execute the file,
-// example:
-// > node build.js TEST=true DEV=1
-//   returns {TEST="true", DEV="1"}
+/**
+ * @type { Object<string, string> }
+ * get the arguments used to execute the file,
+ * for example, if you run `node build.js TEST=true DEV=1`, then
+ * processArgMap will be  {TEST="true", DEV="1"}
+ */
 const processArgMap = Object.fromEntries(process.argv.slice(2).map((argument) => argument.split('=')));
 
-// If IS_DEV, then we launch an express server on the designated PORT to serve the static files
+/**
+ * @type {boolean}
+ * If IS_DEV, then we launch an express server on the designated PORT to serve the static files
+ */
 const IS_DEV =
   !!processArgMap.DEV || (typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV !== 'production');
 const PORT = process.env.PORT || 3000;
 
 /**
+ * @type {number}
  * REPORT_LEVEL determines what is logged to the terminal during the build
  * 0 === none
  * 1 === errors only
@@ -21,29 +29,56 @@ const PORT = process.env.PORT || 3000;
  */
 const REPORTING_LEVEL = processArgMap.REPORTING_LEVEL ? Number(processArgMap.REPORTING_LEVEL) : 1;
 
-// the base directory of the project
+/**
+ * @type {string}
+ * the base directory of the project
+ */
 const BASE_DIR = path.join(__dirname, '../../');
 
 // NOTE: For security reasons, all for *_DIR are relative to the base directory of this project.
 //  This means that you cannot designate a content or build folder outside of this project.
 
-// where should we look for the content?
+/**
+ * @type {string}
+ * where should we look for the content?
+ */
 const CONTENT_DIR = path.join(BASE_DIR, process.env.CONTENT_DIR || './content/');
-// where should we build the finished files?
+
+/**
+ * @type {string}
+ * where should we build the finished files?
+ */
 const BUILD_DIR = path.join(BASE_DIR, process.env.BUILD_DIR || './dist/');
-// where should we look for templates
+
+/**
+ * @type {string}
+ * where should we look for templates
+ */
 const TEMPLATE_DIR = path.join(BASE_DIR, process.env.TEMPLATE_DIR || './src/client/templates/');
 
-// where should we find static files (which will be copied without processing to the build directory)?
+/**
+ * @type {string}
+ * where should we find static files (which will be copied without processing to the build directory)?
+ */
 const STATIC_DIR = path.join(BASE_DIR, './static/');
-// where should we copy static files to?
+
+/**
+ * @type {string}
+ * where should we copy static files to?
+ */
 const BUILD_STATIC_DIR = path.join(BUILD_DIR, './static/');
 
-// what is the character limit for generating the extract text of a page?
-const EXTRACT_CHAR_LIMIT = process.env.EXTRACT_CHAR_LIMIT || 250;
+/**
+ * @type {number}
+ * what is the character limit for generating the extract text of a page?
+ */
+const EXTRACT_CHAR_LIMIT = (process.env.EXTRACT_CHAR_LIMIT && Number(process.env.EXTRACT_CHAR_LIMIT)) || 250;
 
-// If RENDER_DRAFTS !== true, then we will not publish content that has `draft: true` in the frontmatter
-const RENDER_DRAFTS = typeof process.env.RENDER_DRAFTS === 'undefined' ? false : process.env.RENDER_DRAFTS;
+/**
+ * @type {boolean}
+ * If RENDER_DRAFTS !== true, then we will not publish content that has `draft: true` in the frontmatter
+ */
+const RENDER_DRAFTS = typeof process.env.RENDER_DRAFTS === 'undefined' ? false : Boolean(process.env.RENDER_DRAFTS);
 
 module.exports = {
   IS_DEV,

@@ -1,3 +1,7 @@
+// @ts-check
+
+/** @namespace TOTO */
+
 // allows us to import svelte files directly in node without transpilation / bundling
 require('svelte/register');
 
@@ -30,22 +34,26 @@ try {
 
 /**
  * Given settled promises, get fulfilled and handle the errors
- * @param {array} settled the settled promises
+ *
+ * @param {any[]} settled the settled promises
  * @param {string} errorMessage the error message for handlinf the errors
+ * @returns {Array} the values
  */
 const getFulfilled = (settled, errorMessage) =>
-  settled.reduce((prev, { status, value, reason }) => {
-    if (status !== 'fulfilled') {
+  settled.reduce((prev, result) => {
+    if (result.status !== 'fulfilled') {
+      const { reason } = result;
       // handle errors
       extendedError(errorMessage, reason);
       return prev;
     }
-    return [...prev, value];
+    return [...prev, result.value];
   }, []);
 
 /**
  * From an array of page file paths (svelte), generate an array of nodes, where
  *
+ *  @todo correctly implement typing
  *  type node = {
  *    data: {
  *      draft: boolean,
@@ -62,6 +70,9 @@ const getFulfilled = (settled, errorMessage) =>
  *    contents: "" // processed html
  *    Component: SvelteComponent // used for rendering
  *  }
+ *
+ * @param {Array=} pageFiles the page files
+ * @returns {Object[]} the page data
  */
 const processPages = (pageFiles = []) => {
   const pages = [];
@@ -116,6 +127,9 @@ const processPages = (pageFiles = []) => {
  *    contents: string // processed html
  *    // ...other vfile fields
  *  }
+ *
+ * @param {Array=} files the files
+ * @returns {Promise<any[]>} the results
  */
 const processContent = async (files = []) => {
   // process each file
@@ -232,9 +246,10 @@ const postProcessContent = async (processedContent = []) => {
 
 /**
  * For each image in the image map, process the image
- * @param {Object} imageMap
+ *
+ * @param {Object=} imageMap the map of paths to image nodes
  */
-const publishImages = (imageMap) => {
+const publishImages = (imageMap = {}) => {
   Object.entries(imageMap).forEach(([originalPath, { src: outputPath }]) => {
     processImage({ originalPath, outputPath });
   });
@@ -242,7 +257,9 @@ const publishImages = (imageMap) => {
 
 /**
  * For each node in the content array, publish the file
- * @param {array} content
+ *
+ * @param {Object[]} content the content nodes
+ * @returns {void}
  */
 const publishContent = (content) => {
   content.forEach((node) => {
@@ -272,6 +289,9 @@ const publishContent = (content) => {
 /**
  * Create sitemap.txt using page nodes and config.siteMetadata.siteUrl
  * See more here: https://developers.google.com/search/docs/advanced/sitemaps/build-sitemap
+ *
+ * @param {Object[]} nodes the content nodes
+ * @returns {void}
  */
 const createSiteMap = (nodes) => {
   if (!config.generateSitemap) return;

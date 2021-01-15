@@ -35,17 +35,22 @@
     "vfile": "^4.2.1"
   },
   "devDependencies": {
-    "eslint": "7.2.0",
+    "eslint": "^7.17.0",
     "eslint-config-airbnb": "18.2.1",
     "eslint-config-prettier": "^7.1.0",
+    "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-jest": "^24.1.3",
+    "eslint-plugin-jsdoc": "^31.0.5",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-react": "^7.21.5",
-    "eslint-plugin-react-hooks": "4.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "jest": "^26.6.3",
+    "jsdoc": "^3.6.6",
     "mdsvex": "^0.8.9",
     "nodemon": "^2.0.6",
-    "prettier": "^2.2.1"
+    "prettier": "^2.2.1",
+    "typescript": "^4.1.3"
   },
   "scripts": {
     "build": "node build.js REPORTING_LEVEL=1",
@@ -53,6 +58,9 @@
     "build:explicit": "node build.js REPORTING_LEVEL=2",
     "dev": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore dist/ REPORTING_LEVEL=1 DEV=1",
     "dev:quiet": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore dist/ REPORTING_LEVEL=0 DEV=1",
-    "dev:explicit": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore dist/ REPORTING_LEVEL=2 DEV=1"
+    "dev:explicit": "nodemon build.js -e js,md,svelte,css,jpeg,jpg,png,gif,svg,html --ignore dist/ REPORTING_LEVEL=2 DEV=1",
+    "test": "jest",
+    "jsdoc": "jsdoc -c .jsdocrc **/*.js -R readme.md",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
   }
 }

@@ -1,3 +1,8 @@
+// @ts-check
+
+/**  @todo implement types */
+/**  @todo implement @ts-check */
+
 const remark = require('remark');
 const find = require('unist-util-find');
 const visit = require('unist-util-visit');
@@ -6,7 +11,7 @@ const frontmatter = require('remark-frontmatter');
 const parseFrontmatter = require('remark-parse-frontmatter');
 const html = require('remark-html');
 
-const { EXTRACT_LIMIT } = require('./utils/constants.js');
+const { EXTRACT_CHAR_LIMIT } = require('./utils/constants.js');
 const { REGEX_CONSEC_SPACE, REGEX_TRAILING_SPACE, REGEX_TRAILING_NON_ALPHA_NUMERICS } = require('./utils/regex.js');
 const { getPaths } = require('./utils/paths.js');
 const { error } = require('./utils/reporting.js');
@@ -25,9 +30,11 @@ try {
  * A remark plugin to extract the title and description from the frontmatter or content of a markdown file
  * Sets node.data.seo.title and node.data.seo.description
  *
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
-const extractSeo = () => (tree = {}, file = {}) => {
+const extractSeo = () => (tree, file = {}) => {
   const { data = {} } = file;
 
   // init seo node in data
@@ -61,6 +68,9 @@ const extractSeo = () => (tree = {}, file = {}) => {
   } else {
     // extract description from non heading text nodes
     let descriptionText = '';
+
+    /** @todo fixme */
+    // @ts-ignore
     const yamlNode = filter(tree, (node) => node.type !== 'heading' && node.type !== 'yaml');
     if (yamlNode) {
       visit(yamlNode, 'text', (node) => {
@@ -70,9 +80,9 @@ const extractSeo = () => (tree = {}, file = {}) => {
 
     // remove double spaces and terminal space
     descriptionText = descriptionText.replace(REGEX_CONSEC_SPACE, ' ').replace(REGEX_TRAILING_SPACE, '');
-    if (descriptionText.length > EXTRACT_LIMIT) {
+    if (descriptionText.length > EXTRACT_CHAR_LIMIT) {
       // remove final characters and then add ellipses
-      descriptionText = descriptionText.substr(0, EXTRACT_LIMIT).replace(REGEX_TRAILING_NON_ALPHA_NUMERICS, '');
+      descriptionText = descriptionText.substr(0, EXTRACT_CHAR_LIMIT).replace(REGEX_TRAILING_NON_ALPHA_NUMERICS, '');
       descriptionText = `${descriptionText}...`;
     }
     data.seo.description = descriptionText;
@@ -82,7 +92,9 @@ const extractSeo = () => (tree = {}, file = {}) => {
 /**
  * A remark plugin to set node.data.draft
  *
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
 const setIsDraft = () => (tree, file = {}) => {
   const { data = {} } = file;
@@ -94,8 +106,10 @@ const setIsDraft = () => (tree, file = {}) => {
 /**
  * A remark plugin to set node.data.template
  *
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
- */
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
+ * */
 const setTemplate = () => (tree, file = {}) => {
   const { data = {} } = file;
   data.template = (data.frontmatter && data.frontmatter.template) || 'Default';
@@ -104,7 +118,9 @@ const setTemplate = () => (tree, file = {}) => {
 /**
  * A remark plugin to set node.data.finalPath, node.data.initialPath, and node.data.relPath, and
  *
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
 const setDataPaths = () => (tree, file = {}) => {
   const { data = {}, cwd, path: filePath } = file;
@@ -117,7 +133,9 @@ const setDataPaths = () => (tree, file = {}) => {
 /**
  * A remark plugin to set node.data.created, node.data.modified, assuming that the info was provided using statSync
  *
- * see https://unifiedjs.com/learn/guide/create-a-plugin/
+ * @see https://unifiedjs.com/learn/guide/create-a-plugin/
+ *
+ * @returns {Function} the plugin
  */
 const setFileInfo = () => (tree, file = {}) => {
   const { data = {}, info = {} } = file;

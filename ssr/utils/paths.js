@@ -1,11 +1,21 @@
+// @ts-check
+
 const { REGEX_EXTENSION, REGEX_INVALID_PATH_CHARS, REGEX_CURR_DIR, REGEX_LEADING_SLASH } = require('./regex.js');
 
+/**
+ * Get the useful file paths for the given file
+ *
+ * @param {string} filePath entire the path of the file
+ * @param {string} cwd the current working directory of the operation
+ * @returns {{relPath: string, initialPath: string, finalPath: string, fileName: string}} the data
+ */
 const getPaths = (filePath, cwd) => {
   const data = {};
   const relPath = filePath.replace(cwd, '');
 
   let outputPathBase = relPath.replace(REGEX_EXTENSION, '').replace(REGEX_INVALID_PATH_CHARS, '');
 
+  /** @todo this needs to be fixed -- data.frontmatter does not exist */
   // allow for custom path, properly formatted, retrieved from path, permalink, slug, or route in the frontmatter
   const frontmatterPath = data.frontmatter
     ? data.frontmatter.permalink || data.frontmatter.path || data.frontmatter.route || data.frontmatter.slug
@@ -18,7 +28,7 @@ const getPaths = (filePath, cwd) => {
       .replace(REGEX_INVALID_PATH_CHARS, '');
   }
 
-  // TODO: use path package??
+  /** @todo use path package?? */
   data.finalPath = `/${outputPathBase}.html`;
   data.initialPath = filePath;
   data.relPath = relPath;

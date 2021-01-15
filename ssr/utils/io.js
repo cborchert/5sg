@@ -1,3 +1,5 @@
+// @ts-check
+
 const fs = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
@@ -36,21 +38,30 @@ function copyStaticFiles() {
 }
 
 /**
+ * @callback writeLogger
+ * @param {string} logPath if the content is served, the served path; otherwise the finalPath
+ * @param {string} finalPath the write path of the file
+ * @returns {any}
+ */
+
+/**
  * Write given content to output path
- * @param {Object} param0
- * @param {string} param0.pageContent the content to write
- * @param {string} param0.outputPath the path to write to
- * @param {boolean} param0.skipIfExists if true will not overwrite existing files
- * @param {(logPath: string, finalPath: string)} param0.onSuccess the success callback
- * @param {(logPath: string, finalPath: string)} param0.onSkip the skip callback
+ *
+ * @param {Object} param0 the params
+ * @param {string|Buffer} param0.fileContent the content to write
+ * @param {string=} param0.outputBase the directory to write to defaults to the build directory
+ * @param {string} param0.outputPath the path of the file to write to, relative to the outputBase
+ * @param {boolean=} param0.skipIfExists if true will not overwrite existing files
+ * @param {writeLogger=} param0.onSuccess the success callback
+ * @param {writeLogger=} param0.onSkip the skip callback
  * @throws on I/O error
  */
 const writeContentToPath = ({
   fileContent,
   outputPath = '',
-  onSuccess,
-  skipIfExists,
-  onSkip,
+  onSuccess = () => {},
+  skipIfExists = false,
+  onSkip = () => {},
   outputBase = BUILD_DIR,
 }) => {
   const finalPath = path.join(outputBase, outputPath.replace(REGEX_LEADING_SLASH, ''));
@@ -59,10 +70,8 @@ const writeContentToPath = ({
   // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
   if (!fs.existsSync(outputDirectory)) {
-    fs.mkdirSync(outputDirectory, { recursive: true }, (err) => {
-      // errors will be caught below
-      throw err;
-    });
+    // errors will be caught by parent
+    fs.mkdirSync(outputDirectory, { recursive: true });
   }
 
   if (fs.existsSync(finalPath) && skipIfExists) {
@@ -80,10 +89,11 @@ const writeContentToPath = ({
 };
 
 /**
- * given an original image, write to the output path
- * @param {Object} param0
- * @param {string} originalPath the path to the image
- * @param {string} outputPath the path to write to
+ * Given an original image, write to the output path
+ *
+ * @param {Object} param0 the props
+ * @param {string} param0.originalPath the path to the image
+ * @param {string} param0.outputPath the path to write to
  */
 const processImage = ({ originalPath, outputPath = '' }) => {
   log(`Processing image ${originalPath}`);
@@ -121,14 +131,16 @@ const processImage = ({ originalPath, outputPath = '' }) => {
       }
     });
 
-  // TODO: possibly write a webp image for modern browsers
-  // TODO: make small 10x10 jpg for blur up
+  /** @todo possibly write a webp image for modern browsers */
+  /** @todo make small 10x10 jpg for blur up */
 };
 
 /**
  * Recursively gets all matching files in a directory
+ *
  * @param {string} inDir the directory to recursively search
- * @param {array} extensions an array of strings representing the file extensions to accept written in lower case ["md", "svelte"]
+ * @param {Array} extensions an array of strings representing the file extensions to accept written in lower case ["md", "svelte"]
+ * @returns {string[]} the file paths
  */
 function getFiles(inDir, extensions) {
   let files = [];
