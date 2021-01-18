@@ -79,7 +79,6 @@ const writeContentToPath = ({
   // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
   if (!fs.existsSync(outputDirectory)) {
-    console.log(outputDirectory);
     // errors will be caught by parent
     fs.mkdirSync(outputDirectory, { recursive: true });
   }
