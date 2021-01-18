@@ -32,6 +32,7 @@
           </li>
           <li>and the conversion of <strong>100</strong> high quality (but too large) images to sanely sized files.</li>
         </ul>
+        <p>We also have an example of an <a href="hydrated.hydrate.svelte">interactive page</a> for you to check out</p>
         <p>Take some time to explore, we'll see you again soon. 👋</p>
       </div>
     </section>

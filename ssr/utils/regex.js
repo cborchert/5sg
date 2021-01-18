@@ -5,7 +5,7 @@
  */
 
 // matches final extension, including dot e.g. .html, .md, .mp4
-const REGEX_EXTENSION = /\.[^.]+$/;
+const REGEX_EXTENSION = /(\.[^./]+)+$/;
 // matches any non alpha numeric character, plus _, -, /, and .
 const REGEX_INVALID_PATH_CHARS = /[^A-Za-z0-9_\-/.]/g;
 // matches / and ./

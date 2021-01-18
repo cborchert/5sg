@@ -1,5 +1,6 @@
 build/
 dist/
+.5sg/
 node_modules/
 yarn.lock
 

@@ -5,7 +5,7 @@ const path = require('path');
 const rimraf = require('rimraf');
 const sharp = require('sharp');
 
-const { IS_DEV, PORT, BUILD_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('./constants.js');
+const { IS_DEV, PORT, BUILD_DIR, BASE_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('./constants.js');
 const { log, error, forceLog, forceError } = require('./reporting.js');
 const { REGEX_LEADING_SLASH } = require('./regex.js');
 
@@ -19,6 +19,15 @@ function deletePreviousBuild() {
     forceLog(`Previous build deleted.`);
   } catch (err) {
     forceError(`Error while deleting previous build.`);
+    forceError(err);
+  }
+  try {
+    /** @todo eventually we'll want to keep the cache, but we don't have the mechanics in place for that yet */
+    forceLog(`Removing previous cache...`);
+    rimraf.sync(path.join(BASE_DIR, '/.5sg'));
+    forceLog(`Previous cache deleted.`);
+  } catch (err) {
+    forceError(`Error while deleting cache build.`);
     forceError(err);
   }
 }
@@ -64,12 +73,13 @@ const writeContentToPath = ({
   onSkip = () => {},
   outputBase = BUILD_DIR,
 }) => {
-  const finalPath = path.join(outputBase, outputPath.replace(REGEX_LEADING_SLASH, ''));
+  const finalPath = outputBase ? path.join(outputBase, outputPath.replace(REGEX_LEADING_SLASH, '')) : outputPath;
   const logPath = IS_DEV ? `http://localhost:${PORT}/${outputPath.replace(REGEX_LEADING_SLASH, '')}` : finalPath;
 
   // create directory if necessary
   const outputDirectory = path.dirname(finalPath);
   if (!fs.existsSync(outputDirectory)) {
+    console.log(outputDirectory);
     // errors will be caught by parent
     fs.mkdirSync(outputDirectory, { recursive: true });
   }

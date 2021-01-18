@@ -11,16 +11,19 @@ const vfile = require('vfile');
 
 // import local utils
 const generateOuterHtml = require('./utils/generateOuterHtml.js');
+const generateHydrationCode = require('./utils/generateHydrationCode.js');
+const bundleHydrationCode = require('./utils/bundleHydrationCode.js');
 const processor = require('./processor.js');
 const postProcessor = require('./postProcessor.js');
-const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR } = require('./utils/constants.js');
+const { RENDER_DRAFTS, CONTENT_DIR, TEMPLATE_DIR, BUILD_DIR, BASE_DIR } = require('./utils/constants.js');
 const { log, forceLog, extendedError, error, time, timeEnd, forceTime, forceTimeEnd } = require('./utils/reporting.js');
 const { writeContentToPath, processImage, getFiles } = require('./utils/io.js');
-const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH } = require('./utils/regex.js');
+const { REGEX_TRAILING_SLASH, REGEX_LEADING_SLASH, REGEX_INVALID_PATH_CHARS } = require('./utils/regex.js');
 const { getPaths } = require('./utils/paths');
 
-// TODO: we should *not* depend on something in the src folder in the lib
-const DefaultContentTemplate = require('../src/client/templates/Default.svelte').default;
+/** @todo  we should *not* depend on something in the src folder in the lib */
+const defaultTemplatePath = path.join(TEMPLATE_DIR, '/Default.svelte');
+const DefaultContentTemplate = require(defaultTemplatePath).default;
 
 // conditionally include cofig
 let config;
@@ -168,7 +171,7 @@ const postProcessContent = async (processedContent = []) => {
   const nodeData = Object.fromEntries(processedContent.map(({ data }) => [data.relPath, data]));
   const { siteMetadata } = config;
 
-  // we'll store the images to be processed here
+  // we'll store the images to be processed hsvelteere
   const imageMap = {};
   const promises = [];
   const templates = {
@@ -177,8 +180,13 @@ const postProcessContent = async (processedContent = []) => {
 
   processedContent.forEach((processed) => {
     const { contents: htmlContent, data = {}, Component } = processed;
-    const { initialPath, template = 'Default' } = data;
+    const { initialPath, relPath, template = 'Default' } = data;
 
+    // If the path includes `.hydrate.`, then we hydrate it
+    let hydrate = initialPath.includes('.hydrate.');
+    // if a component has been included, the initial path is the renderedTemplatePath
+    /** @todo rather than including the component, include the import path to the component */
+    let renderedTemplatePath = Component ? initialPath : '';
     try {
       // load the Svelte template component used for the current content
       // If a Component prop was identified, we'll use that
@@ -188,29 +196,72 @@ const postProcessContent = async (processedContent = []) => {
         // we haven't used this template yet.
         // no big deal, look it up!
         const templatePath = path.join(TEMPLATE_DIR, `${template}.svelte`);
+        // If the template path includes `.hydrate.`, then we hydrate it
+        if (templatePath.includes('.hydrate.')) {
+          hydrate = true;
+        }
         try {
           // eslint doesn't like the following line because of the rules global-require import/no-dynamic-require
           // eslint-disable-next-line
           Template = require(templatePath).default;
           templates[template] = Template;
+          renderedTemplatePath = templatePath;
         } catch (err) {
           // ...ok the template has something wrong with it.
           // inform the user
           extendedError(`while loading template file ${templatePath} (used by ${initialPath})`, err);
           // and use the default template
           Template = DefaultContentTemplate;
+          renderedTemplatePath = defaultTemplatePath;
         }
       }
 
-      // only generate publishable content
-      // inject the data and html into the template
-      const { html, css: { code: styles = '' } = {}, head } = Template.render({
+      const props = {
         htmlContent,
         data,
         isDraft: data.draft,
         nodeData,
         siteMetadata,
-      });
+      };
+      // only generate publishable content
+      // inject the data and html into the template
+      const { html, css: { code: styles = '' } = {}, head: templateHeadContent } = Template.render(props);
+      let head = templateHeadContent;
+
+      if (hydrate) {
+        try {
+          // Create hydration file path name from relPath
+          // e.g. /path/to/page.hydrate.svelte => path--to--page_hydrate_svelte.js
+          const hydrationFileBase = relPath
+            .replace(REGEX_LEADING_SLASH, '')
+            .replace(REGEX_INVALID_PATH_CHARS, '-')
+            .replace(/\./g, '_')
+            .replace(/\//g, '--');
+          const hydrationFilePath = `${hydrationFileBase}.js`;
+
+          // Write hydration code to cache
+          const hydrationPrebuildPath = `/.5sg/cache/prebuild/${hydrationFilePath}`;
+          const hydrationCode = generateHydrationCode({ path: renderedTemplatePath, props });
+          writeContentToPath({
+            fileContent: hydrationCode,
+            outputPath: hydrationPrebuildPath,
+            outputBase: BASE_DIR,
+            onSuccess: (logPath, finalPath) => {
+              log(`Prebuilt the hydration code for ${relPath} at ${finalPath}`);
+            },
+          });
+
+          // Generate code using rollup and write to dist directory
+          const hydrationBuildPath = `/build/scripts/${hydrationFilePath}`;
+          bundleHydrationCode(path.join(BASE_DIR, hydrationPrebuildPath), path.join(BUILD_DIR, hydrationBuildPath));
+
+          // Add script input to html head
+          head += `<script defer src="${hydrationBuildPath}"></script>`;
+        } catch (err) {
+          extendedError(`while generating hydration code for ${relPath}`);
+        }
+      }
+
       const pageContent = generateOuterHtml({ html, styles, head });
       promises.push(
         postProcessor.processSync(
