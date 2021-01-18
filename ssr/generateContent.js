@@ -216,16 +216,33 @@ const postProcessContent = async (processedContent = []) => {
         }
       }
 
+      /**
+       * prepare the props
+       * there's a big problem here: nodeData is huge, which means that hydrated component js would blow up to be 4 megabytes (on the 1k) if we included it
+       * for the moment, the solution is simply: don't include nodeData in the hydration props
+       *
+       * There's a problem there, though. This means we need to choose between a hydrated page and a page which has access to the entirety of the site's
+       * nodeData, which is unacceptable. For me, there are two apparent solutions:
+       *  - partial hydration (pages don't get hydrated, but we can dog-ear certain components to get hydrated, and only with necessary props)
+       *  - or props selectors (we assign function which reduces the props into the useable props, then we inject that into the page )
+       *
+       * @todo figure out a good solution: partial hydration, or props reducers/selectors
+       */
       const props = {
         htmlContent,
         data,
         isDraft: data.draft,
-        nodeData,
+        // see above
+        // nodeData,
         siteMetadata,
       };
       // only generate publishable content
       // inject the data and html into the template
-      const { html, css: { code: styles = '' } = {}, head: templateHeadContent } = Template.render(props);
+      const { html, css: { code: styles = '' } = {}, head: templateHeadContent } = Template.render({
+        ...props,
+        // see above
+        nodeData,
+      });
       let head = templateHeadContent;
 
       if (hydrate) {
