@@ -122,13 +122,7 @@ const replaceImageLinks = () => (tree, file = {}) => {
     let { src = '', width, height } = properties;
     let blurSrc = '';
     let originalPath = '';
-    if (imageMap[originalPath]) {
-      // already processed; don't repeat yourself
-      src = imageMap[properties].src;
-      width = imageMap[properties].width;
-      height = imageMap[properties].height;
-      blurSrc = imageMap[properties].sizes && imageMap[properties].sizes.tiny;
-    }
+
     if (src.startsWith('/')) {
       // create image map for srcs from the base directory
       // in this case, the src is used directly as the key
@@ -140,8 +134,14 @@ const replaceImageLinks = () => (tree, file = {}) => {
       originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
     }
 
-    // set the image map information
-    if (originalPath && !imageMap[originalPath]) {
+    if (imageMap[originalPath]) {
+      // already processed; don't repeat yourself
+      src = imageMap[originalPath].src;
+      width = imageMap[originalPath].width;
+      height = imageMap[originalPath].height;
+      blurSrc = imageMap[originalPath].sizes && imageMap[originalPath].sizes.tiny;
+    } else {
+      // set the image map information
       const metadata = getImageInfo(originalPath);
       const extension = originalPath.match(REGEX_EXTENSION)[0];
       blurSrc = src.replace(REGEX_EXTENSION, `__tiny${extension}`);
