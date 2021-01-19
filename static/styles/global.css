@@ -3,6 +3,7 @@
   --bg-secondary: #eaeaef;
   --bg-tertiary: #fafafa;
   --bg-inverse: #32353f;
+  --bg-code: #002b36;
 
   --primary: #32353f;
   --inverse: #eee;
@@ -30,7 +31,7 @@ img {
 pre {
   overflow-x: auto;
   max-width: 100%;
-  background: var(--bg-inverse);
+  background: var(--bg-code);
   color: var(--inverse);
   padding: 24px;
   line-height: 2;
@@ -64,6 +65,21 @@ a[target]::after {
   text-decoration: none;
   color: var(--shadow-secondary);
   font-weight: bold;
+}
+
+/* anchors #my-id and #my-name generate virtual space above them to correct the scroll too offset from the sticky header */
+/* @see https://stackoverflow.com/questions/10732690/offsetting-an-html-anchor-to-adjust-for-fixed-header */
+[name]::before,
+[id]::before {
+  content: '';
+  display: inline-block;
+  height: 1px;
+  width: 1px;
+  position: relative;
+  top: -90px;
+  visibility: hidden;
+  z-index: -1;
+  pointer-events: none;
 }
 
 h1,

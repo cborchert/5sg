@@ -28,6 +28,7 @@
     align-items: center;
     padding: 0 20px;
     box-sizing: border-box;
+    z-index: 1;
   }
   header > * {
     flex: 0;
