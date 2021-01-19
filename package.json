@@ -10,6 +10,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "fs-extra": "^9.0.1",
+    "image-size": "^0.9.3",
     "rehype-katex": "^4.0.0",
     "rehype-parse": "^7.0.1",
     "rehype-preset-minify": "^5.1.0",

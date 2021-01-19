@@ -4,10 +4,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
 const sharp = require('sharp');
+const imageSize = require('image-size').default;
 
 const { IS_DEV, PORT, BUILD_DIR, BASE_DIR, STATIC_DIR, BUILD_STATIC_DIR } = require('./constants.js');
 const { log, error, forceLog, forceError } = require('./reporting.js');
-const { REGEX_LEADING_SLASH } = require('./regex.js');
+const { REGEX_LEADING_SLASH, REGEX_EXTENSION } = require('./regex.js');
 
 /**
  * Delete remove files in the designated build directory
@@ -113,9 +114,9 @@ const processImage = ({ originalPath, outputPath = '' }) => {
   }
 
   sharp(originalPath)
-    .resize(1200, 800, { fit: 'inside', withoutEnlargement: true })
+    .resize(2000, 1200, { fit: 'inside', withoutEnlargement: true })
     .toBuffer((err, buffer) => {
-      // TODO: use third info parameter to deal with file info (for use such as width, height, etc. )
+      /** @todo consider using toFile here directly @see https://sharp.pixelplumbing.com/api-output#tofile */
       if (err) {
         error(`Error while processing ${originalPath}.`);
         error(err);
@@ -140,8 +141,52 @@ const processImage = ({ originalPath, outputPath = '' }) => {
       }
     });
 
+  /** make small 10x10 jpg for blur up */
+  sharp(originalPath)
+    .resize(10, 10, { fit: 'inside', withoutEnlargement: true })
+    .toBuffer((err, buffer) => {
+      /** @todo consider using toFile here directly @see https://sharp.pixelplumbing.com/api-output#tofile */
+      if (err) {
+        error(`Error while processing ${originalPath}.`);
+        error(err);
+        return;
+      }
+      const extension = outputPath.match(REGEX_EXTENSION)[0];
+      const blurSrc = outputPath.replace(REGEX_EXTENSION, `__tiny${extension}`);
+      try {
+        writeContentToPath({
+          fileContent: buffer,
+          outputPath: blurSrc,
+          // do not overwrite -- it's a worthless operation
+          skipIfExists: true,
+          onSuccess: (logPath) => {
+            log(`Image processing for ${originalPath} completed. Processed image: ${logPath}`);
+          },
+          onSkip: (logPath) => {
+            log(`Image processing for ${originalPath} skipped. Processed image exists at: ${logPath}`);
+          },
+        });
+      } catch (ioError) {
+        error(`Error while writing image file for ${originalPath} to ${outputPath}`);
+        error(ioError);
+      }
+    });
+
   /** @todo possibly write a webp image for modern browsers */
-  /** @todo make small 10x10 jpg for blur up */
+};
+
+/**
+ * Get the image's dimensions
+ *
+ * @param {string} originalPath the path to the image
+ * @returns {{width: number, height: number}} the image meta
+ */
+const getImageInfo = (originalPath) => {
+  if (!fs.existsSync(originalPath)) {
+    error(`Error while processing ${originalPath} : cannot find file.`);
+    return;
+  }
+  return imageSize(originalPath);
 };
 
 /**
@@ -174,4 +219,5 @@ module.exports = {
   writeContentToPath,
   processImage,
   getFiles,
+  getImageInfo,
 };

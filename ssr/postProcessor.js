@@ -12,8 +12,10 @@ const {
   REGEX_LEADING_SLASH,
   REGEX_REL_DIR,
   REGEX_EXTERNAL_LINK,
+  REGEX_EXTENSION,
 } = require('./utils/regex.js');
 const { error } = require('./utils/reporting.js');
+const { getImageInfo } = require('./utils/io.js');
 
 // conditionally include cofig
 let config;
@@ -117,23 +119,51 @@ const replaceImageLinks = () => (tree, file = {}) => {
     // but in this case we do want side effects 🤷‍♀️
     /* eslint-disable no-param-reassign */
 
-    let { src = '' } = properties;
+    let { src = '', width, height } = properties;
+    let blurSrc = '';
     let originalPath = '';
+    if (imageMap[originalPath]) {
+      // already processed; don't repeat yourself
+      src = imageMap[properties].src;
+      width = imageMap[properties].width;
+      height = imageMap[properties].height;
+      blurSrc = imageMap[properties].sizes && imageMap[properties].sizes.tiny;
+    }
     if (src.startsWith('/')) {
       // create image map for srcs from the base directory
       // in this case, the src is used directly as the key
       originalPath = path.join(cwd, src);
-      imageMap[originalPath] = { src };
     } else if (properties.src && REGEX_REL_DIR.test(properties.src)) {
       // deal with relative paths
+      // we'll be updating the sex
       src = path.join(relDirname, properties.src);
       originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
-      imageMap[originalPath] = { src };
     }
 
-    // update the url if necessary
+    // set the image map information
+    if (originalPath && !imageMap[originalPath]) {
+      const metadata = getImageInfo(originalPath);
+      const extension = originalPath.match(REGEX_EXTENSION)[0];
+      blurSrc = src.replace(REGEX_EXTENSION, `__tiny${extension}`);
+      imageMap[originalPath] = { src, sizes: { full: src, tiny: blurSrc }, ...metadata };
+      width = metadata.width;
+      height = metadata.height;
+    }
+
+    // update the properties if necessary
     if (src !== properties.src) {
       properties.src = src;
+    }
+    if (blurSrc && src) {
+      /** @todo only use when config says to, otherwise people might have a nasty surprise -- small images when they didn't want it! */
+      properties.src = blurSrc;
+      properties['data-lazy-src'] = src;
+    }
+    if (!properties.width) {
+      properties.width = width;
+    }
+    if (!properties.height) {
+      properties.height = height;
     }
 
     // make the image lazy load
@@ -192,6 +222,16 @@ const plugins = [...standardPlugins, ...customPlugins]
 // apply each plugin to the processor
 // TODO: technically, the .use method mutates the processor, so the return isn't necessary
 // use a foreach?
+/**
+ * A NOTE FROM THE CREATORS OF UNIFIED
+ *  Walking the tree is an intensive task. Make use of the return values of the visitor when possible.
+ *  Instead of walking a tree multiple times with different tests, walk it once without a test,
+ *  and use unist-util-is to check if a node matches a test, and then perform different operations.
+ *
+ * @see https://github.com/syntax-tree/unist-util-visit-parents
+ * @see https://github.com/syntax-tree/unist-util-visit-parents#next--visitornode-ancestors
+ */
+
 const postProcessor = plugins.reduce((prev, plugin) => (plugin ? prev.use(plugin) : prev), unified());
 
 module.exports = postProcessor.freeze();

@@ -281,7 +281,7 @@ const postProcessContent = async (processedContent = []) => {
 
       const pageContent = generateOuterHtml({ html, styles, head });
       promises.push(
-        postProcessor.processSync(
+        postProcessor.process(
           vfile({
             path: initialPath,
             contents: pageContent,
