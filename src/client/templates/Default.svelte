@@ -25,8 +25,7 @@
   const tags = getTagNames(data);
 
   // create sibling pages
-  // TODO: This is expensive and repetitive to to each time.
-  //   This should be generated during post processing.
+  /** @todo This is expensive (?) and repetitive to to each time. This should be generated during post processing or delegated to a derivePropsFromNodeData */
   const blogPages = Object.values(nodeData)
     .filter((node) => node.relPath.startsWith('blog/'))
     .sort((a, b) => {

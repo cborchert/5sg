@@ -35,7 +35,7 @@ const paginateNodes = ({ nodes, perPage = 10, slugify, Component }) => {
   const paginatedNodes = chunks.map((pageNodes, i) => ({
     data: {
       // props used for render
-      /** @todo TODO -- use dynamicPath attribute as a replacement for initial and relPath */
+      /** @todo  -- use dynamicPath attribute as a replacement for initial and relPath */
       initialPath: `${slugify(i)}.dynamic`, // useful for reporting
       relPath: `${slugify(i)}.dynamic`, // useful for reporting and linking
       finalPath: `${slugify(i)}.html`,
@@ -123,7 +123,7 @@ const createTaxonomyPages = ({ nodes, slugify, taxonomySlug, getNodeTerms, Compo
   const termPageNodes = Object.entries(terms).map(([termName, { path, nodes: termNodes }]) => ({
     data: {
       // props used for render
-      // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+      /** @todo  -- use dynamicPath attribute as a replacement for initial and relPath */
       // note that the path already has a `.dynamic`
       initialPath: path, // useful for reporting
       relPath: path, // useful for reporting and linking
@@ -143,7 +143,7 @@ const createTaxonomyPages = ({ nodes, slugify, taxonomySlug, getNodeTerms, Compo
     ? {
         data: {
           // props used for render
-          // TODO -- use dynamicPath attribute as a replacement for initial and relPath
+          /** @todo  -- use dynamicPath attribute as a replacement for initial and relPath */
           initialPath: `${taxonomySlug}.dynamic`, // useful for reporting
           relPath: `${taxonomySlug}.dynamic`, // useful for reporting and linking
           finalPath: `${taxonomySlug}.html`,

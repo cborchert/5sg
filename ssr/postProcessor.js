@@ -172,14 +172,25 @@ const replaceImageLinks = () => (tree, file = {}) => {
   });
 };
 
+/**
+ * A NOTE FROM THE CREATORS OF UNIFIED
+ *  Walking the tree is an intensive task. Make use of the return values of the visitor when possible.
+ *  Instead of walking a tree multiple times with different tests, walk it once without a test,
+ *  and use unist-util-is to check if a node matches a test, and then perform different operations.
+ *
+ * @see https://github.com/syntax-tree/unist-util-visit-parents
+ * @see https://github.com/syntax-tree/unist-util-visit-parents#next--visitornode-ancestors
+ *
+ * @todo maybe we DON'T need to switch back to AST before doing our work.
+ * it could save a lot of processing time to be able to simply modify the HTML in place using string operations
+ * in that case, we would not need to reconvert the AST back into HTML
+ */
+
 // create a processor which will be used to parse or process a valid markdown string or file
 // Define plugins
 const standardPlugins = [
   // HTML to AST
   // should be the first thing to happen
-  // TODO: maybe we DON'T need to switch back to AST before doing our work.
-  //  it could save a lot of processing time to be able to simply modify the HTML in place
-  //  in that case, we would not need to reconvert the AST back into HTML
   { use: rehypeParse, priority: 100 },
   // Replace relative links
   { use: replaceRelativeLinks, priority: 50 },
@@ -220,18 +231,7 @@ const plugins = [...standardPlugins, ...customPlugins]
   .filter((a) => a);
 
 // apply each plugin to the processor
-// TODO: technically, the .use method mutates the processor, so the return isn't necessary
-// use a foreach?
-/**
- * A NOTE FROM THE CREATORS OF UNIFIED
- *  Walking the tree is an intensive task. Make use of the return values of the visitor when possible.
- *  Instead of walking a tree multiple times with different tests, walk it once without a test,
- *  and use unist-util-is to check if a node matches a test, and then perform different operations.
- *
- * @see https://github.com/syntax-tree/unist-util-visit-parents
- * @see https://github.com/syntax-tree/unist-util-visit-parents#next--visitornode-ancestors
- */
-
+/** @todo technically, the .use method mutates the processor, so the return isn't necessary. use a foreach? */
 const postProcessor = plugins.reduce((prev, plugin) => (plugin ? prev.use(plugin) : prev), unified());
 
 module.exports = postProcessor.freeze();

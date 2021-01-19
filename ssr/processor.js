@@ -188,8 +188,7 @@ const plugins = [...standardPlugins, ...customPlugins]
 
 // apply each plugin to the processor
 const processor = plugins.reduce((prev, plugin) => {
-  // TODO: technically, the .use method mutates the processor, so the return isn't necessary
-  // use a foreach?
+  /** @todo technically, the .use method mutates the processor, so the return isn't necessary use a foreach? */
   return plugin ? prev.use(plugin) : prev;
 }, remark());
 

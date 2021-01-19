@@ -453,7 +453,7 @@ async function generateContent() {
   time('Processing pages');
   // Process any .svelte files
   // making sure that the output is {contents: "", Component: require(path).default, data: {initialPath, fileInfo, etc. }}
-  // TODO: Import svx as well
+  /** @todo Import svx as well */
   const processedPages = processPages(pageFiles);
   timeEnd('Processing pages');
 
