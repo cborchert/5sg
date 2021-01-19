@@ -6,8 +6,8 @@
 </script>
 
 <svelte:head>
-  <title>Home</title>
-  <meta name="description" content="Home page" />
+  <title>Hydrated</title>
+  <meta name="description" content="An example of a hydrated page" />
 </svelte:head>
 
 <Page>
@@ -40,9 +40,16 @@
     align-items: center;
   }
   .intro {
-    font-size: 2.5rem;
+    font-size: 2rem;
     margin-bottom: 32px;
   }
+
+  @media (min-width: 600px) {
+    .intro {
+      font-size: 2.5rem;
+    }
+  }
+
   button {
     font-size: 1rem;
   }
