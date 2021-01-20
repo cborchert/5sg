@@ -1,3 +1,10 @@
+<script context="module">
+  // the values exported by a script with context="module" are available to other external modules
+  // the __5sg__hydrate export tells 5sg to hydrate the component
+  // note: this only works on top level components (not yet for partial hydration)
+  export const __5sg__hydrate = true;
+</script>
+
 <script>
   import Page from '../src/client/components/Page.svelte';
   export const name = 'hydration';

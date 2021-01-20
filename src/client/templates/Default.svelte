@@ -1,3 +1,34 @@
+<script context="module">
+  /**
+   * Derives additional props from the node data
+   *
+   * @param {Object} param0
+   * @param {Object} param0.nodeData the data relative to all nodes
+   * @param {Object} param0.data the data relative to this content
+   * @returns {Object} the additional props
+   */
+  export const __5sg__deriveProps = ({ nodeData = {}, data = {} }) => {
+    // create sibling pages
+    const blogPages = Object.values(nodeData)
+      .filter((node) => node.relPath.startsWith('blog/'))
+      .sort((a, b) => {
+        const dateA = (a.frontmatter && a.frontmatter.date) || '';
+        const dateB = (b.frontmatter && b.frontmatter.date) || '';
+        // newest first
+        return dateA > dateB ? -1 : 1;
+      });
+    const currentIndex = blogPages.findIndex((node) => node.relPath === data.relPath);
+    const prevPost = currentIndex > 0 && blogPages[currentIndex - 1];
+    const nextPost = currentIndex < blogPages.length - 1 && blogPages[currentIndex + 1];
+
+    // these will be injected into the component
+    return {
+      nextPost,
+      prevPost,
+    };
+  };
+</script>
+
 <script>
   import Page from '../components/Page.svelte';
   import Meta from '../components/Meta.svelte';
@@ -7,8 +38,10 @@
   export let htmlContent = '';
   // the data relative to this content
   export let data = {};
-  // the data relative to all nodes
-  export let nodeData = {};
+
+  // these props are injected thanks to __5sg__deriveProps above
+  export let nextPost;
+  export let prevPost;
 
   export let siteMetadata = {};
   const meta = { siteMetadata, ...(data.seo || {}) };
@@ -23,20 +56,6 @@
   // additional metadata
   const categories = getCategoryNames(data);
   const tags = getTagNames(data);
-
-  // create sibling pages
-  /** @todo This is expensive (?) and repetitive to to each time. This should be generated during post processing or delegated to a derivePropsFromNodeData */
-  const blogPages = Object.values(nodeData)
-    .filter((node) => node.relPath.startsWith('blog/'))
-    .sort((a, b) => {
-      const dateA = (a.frontmatter && a.frontmatter.date) || '';
-      const dateB = (b.frontmatter && b.frontmatter.date) || '';
-      // newest first
-      return dateA > dateB ? -1 : 1;
-    });
-  const currentIndex = blogPages.findIndex((node) => node.relPath === data.relPath);
-  const prevPost = currentIndex > 0 && blogPages[currentIndex - 1];
-  const nextPost = currentIndex < blogPages.length - 1 && blogPages[currentIndex + 1];
 </script>
 
 <Meta {...meta} />

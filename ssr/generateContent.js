@@ -23,7 +23,6 @@ const { getPaths } = require('./utils/paths');
 
 /** @todo  we should *not* depend on something in the src folder in the lib */
 const defaultTemplatePath = path.join(TEMPLATE_DIR, '/Default.svelte');
-const DefaultContentTemplate = require(defaultTemplatePath).default;
 
 // conditionally include cofig
 let config;
@@ -81,7 +80,11 @@ const processPages = (pageFiles = []) => {
   const pages = [];
   pageFiles.forEach((filePath) => {
     try {
-      const data = {};
+      // eslint doesn't like the import/no-dynamic-require and global-require for this line.
+      // eslint-disable-next-line
+      const Component = require(filePath);
+      // extract data from the Component's exports
+      const { __5sg__data__: data = {} } = Component;
 
       // assign the path data
       const pathData = getPaths(filePath, CONTENT_DIR);
@@ -92,9 +95,6 @@ const processPages = (pageFiles = []) => {
       data.modified = fileInfo.mtime;
       data.created = fileInfo.birthtime;
 
-      // eslint doesn't like the import/no-dynamic-require and global-require for this line.
-      // eslint-disable-next-line
-      const Component = require(filePath).default;
       pages.push({
         contents: '',
         data,
@@ -175,73 +175,64 @@ const postProcessContent = async (processedContent = []) => {
   const imageMap = {};
   const promises = [];
   const templates = {
-    Default: DefaultContentTemplate,
+    Default: require(defaultTemplatePath),
   };
 
   processedContent.forEach((processed) => {
     const { contents: htmlContent, data = {}, Component } = processed;
     const { initialPath, relPath, template = 'Default' } = data;
 
-    // If the path includes `.hydrate.`, then we hydrate it
-    let hydrate = initialPath.includes('.hydrate.');
     // if a component has been included, the initial path is the renderedTemplatePath
-    /** @todo rather than including the component, include the import path to the component */
     let renderedTemplatePath = Component ? initialPath : '';
     try {
       // load the Svelte template component used for the current content
       // If a Component prop was identified, we'll use that
-      let Template = Component || templates[template];
+      let templateModule = Component || templates[template];
       // if template is not stored in map
-      if (!Template) {
+      if (!templateModule) {
         // we haven't used this template yet.
         // no big deal, look it up!
         const templatePath = path.join(TEMPLATE_DIR, `${template}.svelte`);
-        // If the template path includes `.hydrate.`, then we hydrate it
-        if (templatePath.includes('.hydrate.')) {
-          hydrate = true;
-        }
         try {
           // eslint doesn't like the following line because of the rules global-require import/no-dynamic-require
           // eslint-disable-next-line
-          Template = require(templatePath).default;
-          templates[template] = Template;
+          templateModule = require(templatePath);
+          templates[template] = templateModule;
           renderedTemplatePath = templatePath;
         } catch (err) {
           // ...ok the template has something wrong with it.
           // inform the user
           extendedError(`while loading template file ${templatePath} (used by ${initialPath})`, err);
           // and use the default template
-          Template = DefaultContentTemplate;
+          templateModule = require(defaultTemplatePath);
           renderedTemplatePath = defaultTemplatePath;
         }
       }
 
+      // get the template and the template props from the template module
+      // if __5sg__hydrate === true, we'll hydrate
+      const {
+        default: Template,
+        __5sg__hydrate: hydrate,
+        __5sg__deriveProps: deriveProps = () => ({}),
+      } = templateModule;
+
       /**
        * prepare the props
-       * there's a big problem here: nodeData is huge, which means that hydrated component js would blow up to be 4 megabytes (on the 1k) if we included it
-       * for the moment, the solution is simply: don't include nodeData in the hydration props
-       *
-       * There's a problem there, though. This means we need to choose between a hydrated page and a page which has access to the entirety of the site's
-       * nodeData, which is unacceptable. For me, there are two apparent solutions:
-       *  - partial hydration (pages don't get hydrated, but we can dog-ear certain components to get hydrated, and only with necessary props)
-       *  - or props selectors (we assign function which reduces the props into the useable props, then we inject that into the page )
-       *
-       * @todo figure out a good solution: partial hydration, or props reducers/selectors
        */
       const props = {
         htmlContent,
         data,
         isDraft: data.draft,
-        // see above
-        // nodeData,
         siteMetadata,
+        // inject all the props derived from the node data
+        ...deriveProps({ nodeData, data }),
       };
+
       // only generate publishable content
       // inject the data and html into the template
       const { html, css: { code: styles = '' } = {}, head: templateHeadContent } = Template.render({
         ...props,
-        // see above
-        nodeData,
       });
       let head = templateHeadContent;
 

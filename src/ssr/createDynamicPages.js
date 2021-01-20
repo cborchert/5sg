@@ -8,16 +8,17 @@ const {
   categoryHome,
 } = require('../shared/blogHelpers.js');
 
-const BlogFeedPageTemplate = require('../client/pages/BlogFeed.svelte').default;
-const CategoryPageTemplate = require('../client/pages/Category.svelte').default;
-const CategoriesHomePageTemplate = require('../client/pages/Categories.svelte').default;
-const TagPageTemplate = require('../client/pages/Tag.svelte').default;
-const TagsHomePageTemplate = require('../client/pages/Tags.svelte').default;
+const BlogFeedPageTemplate = require('../client/pages/BlogFeed.svelte');
+const CategoryPageTemplate = require('../client/pages/Category.svelte');
+const CategoriesHomePageTemplate = require('../client/pages/Categories.svelte');
+const TagPageTemplate = require('../client/pages/Tag.svelte');
+const TagsHomePageTemplate = require('../client/pages/Tags.svelte');
 
 /**
  * Create pages dynamically
- * @param {array} content all content nodes
- * @return {array} of new content nodes
+ *
+ * @param {Array} content all content nodes
+ * @returns {Array} of new content nodes
  */
 const createPages = (content) => {
   /**
