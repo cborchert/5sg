@@ -84,7 +84,8 @@ const processPages = (pageFiles = []) => {
       // eslint-disable-next-line
       const Component = require(filePath);
       // extract data from the Component's exports
-      const { __5sg__data__: data = {} } = Component;
+      /** @todo use the __5sg__data */
+      const { __5sg__data: data = {} } = Component;
 
       // assign the path data
       const pathData = getPaths(filePath, CONTENT_DIR);

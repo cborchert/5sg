@@ -7,10 +7,10 @@ const { REGEX_EXTENSION, REGEX_INVALID_PATH_CHARS, REGEX_CURR_DIR, REGEX_LEADING
  *
  * @param {string} filePath entire the path of the file
  * @param {string} cwd the current working directory of the operation
+ * @param {Object=} data the additional file meta data
  * @returns {{relPath: string, initialPath: string, finalPath: string, fileName: string}} the data
  */
-const getPaths = (filePath, cwd) => {
-  const data = {};
+const getPaths = (filePath, cwd, data = {}) => {
   const relPath = filePath.replace(cwd, '');
 
   let outputPathBase = relPath.replace(REGEX_EXTENSION, '').replace(REGEX_INVALID_PATH_CHARS, '');

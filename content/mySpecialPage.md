@@ -1,6 +1,7 @@
 ---
 template: SpecialPage
 title: 'My very special page'
+permalink: path/to/myPage
 ---
 
 ## Lorem Ipsum Dolor sit Amet

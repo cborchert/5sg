@@ -1,44 +1,236 @@
 # Stupid Simple Svelte Static Site Generator (5SG)
 
-NOTE: This is like 5 hours old. It's not beta, it's not alpha. It's not even a v.0. It's like a v. negative one. Someday it might kick ass. Today, it doesn't even suck -- it hardly does anything. You've been warned.
+<a name="in-the-works"></a>
+NOTE: This project is still what I'd consider a proof of concept. Things may change, or I might abandon the poor thing. I wouldn't depend on it for anything at this point. You've been warned.
 
-## Getting started
-
-For demo purposes of the dev server, try this:
-
-- Clone or the repo
-- Run `yarn` or `npm install`
-- Copy this readme file to `/content/readme.md`, or add your own content.
-- Run `yarn dev`
-- Go to [http://localhost:3000/readme.html](http://localhost:3000/readme.html)
-
-For demo purposes of the build process, try this:
-
-- Clone or the repo
-- Run `yarn` or `npm install`
-- Copy this readme file to `/content/readme.md`, or add your own content.
-- Run `yarn build`
-- Check the `./dist` directory 🕵️‍♀️
-
-### What the 🤬!? My svelte components DON'T DO ANYTHING
-
-Calm down. Breath. This is normal (for now).
-
-While partial hydration of svelte components is on the roadmap, svelte components are not yet being hydrated (so click handlers and interactive bits won't work). This is intentional -- we want to make sure that we're not sending extra stuff to the front end since our goal is to respect the end user's data consumption as much as possible.
-
-For the moment, this means svelte files should be treated as PRESENTATIONAL components, or templates, if you will.
+ALSO NOTE: Even these docs are a work in progress. 🤷
 
 ## Introduction
 
-5SG (working title) is a static site generator boiler plate made for simplicity. It works like this:
+_5sg_ stands for **s**tupid **s**imple **s**velte **s**tatic **s**ite **g**enerator. It's a static site generator (SSG) in the making which focuses on ease of development, simplicity of structure, and speed of delivery. It takes in markdown and svelte, and outputs html. The name will probably change.
+
+It works like this:
 
 1. You put your content in the `/content` directory as `.md` files or `.svelte` files
-2. You modify the templates in `/src/client/templates` to suit your design
-3. You build using `yarn build`.
+2. You modify the template files (`.svelte`) in `/src/client/templates` to suit your design
+3. You build using `yarn build` or launch a dev server using `yarn dev`.
 
-That's it. Your site is ready to publish.
+That's it. Your static site is ready to publish. 🤯
 
-I'd like to add some bells and whistles, but this three-step process should never change. As the name suggests, 5SG is meant to be simple, and to stay simple. If you're building something complex which requires more functionality, this might not be the right starting point for you. However, it is meant as a boiler plate, so go nuts changing whatever you want.
+## Getting started
+
+- Download the code or clone the repo: `git clone https://github.com/cborchert/5sg.git && cd 5sg`
+- Install the dependencies by running `yarn` or `npm install`
+
+### Dev server
+
+- Run `yarn dev` or `npm run dev`
+- Visit [http://localhost:3000/](http://localhost:3000/)
+
+The project is built into `/dist`, and an express server is launched to serve the files. We listen to changes and rebuild. Note that this is still REAAAAALLY basic -- there's no hot module reloading, or incremental builds. That means the _entire_ site will rebuild and you'll need to refresh manually. See the [note](#in-the-works) above.
+
+`yarn dev:quiet` will do the same thing with less output to the terminal
+
+`yarn dev:explicit` will do the same thing with more output to the terminal
+
+### Static build
+
+- Run `yarn build` or `npm run build`
+- Check the `./dist` directory 🕵️‍♀️
+
+The project is built into `/dist`.
+
+`yarn build:quiet` will do the same thing with less output to the terminal
+
+`yarn build:explicit` will do the same thing with more output to the terminal
+
+### Building on Netlify
+
+- Upload your code to github, gitlab, or bitbucket
+- Open your [netlify](https://app.netlify.com/) account
+- Click "[new site from git](https://app.netlify.com/start)"
+- Select your repo
+- Ensure that the build command is `npm run build` (default) and that the publish directory is `dist/` (also default)
+- Click deploy site
+- The site is live (✨)
+
+## How it works
+
+1. We look content in the form of `.md` and `.svelte` files in `/content`.
+1. We process the content, and collect meta data into an array of `nodeData` where one node represents one published page
+   1. `.md` are transformed into html using remark, and their frontmatter is extracted
+   1. meta data for `.svelte` files is extracted
+   1. ~~(ONE DAY: MDSvex `.svx` filles will be preprocessed using remark)~~
+1. We optionally build dynamic pages using the meta data from the `.md` and `.svelte` files. Each dynamic page is added to the `nodeData` array for post processing.
+1. The content in the `nodeData` array is post processed -- each node is saved as an `html` file in the `/dist` directory.
+   1. content generated from markdown is injected into the designated template (or Default.svelte) and then transformed into html
+   1. content from svelte content files and the dynamic pages is transformed into html using the svelte compiler
+   1. all relative links and relative paths images are corrected
+   1. unless a slug was designated, the output `html` file is generated with the same relative path as the input file. i.e. `/content/blog/2021/01/post.svelte` is published as `/dist/blog/2021/01/post.html`
+1. All images used in html (except those in the `/static` folder) are processed
+1. We copy the `/static` folder to `/dist/static`
+1. A sitemap and sitemanifest are created and added to `/dist`
+
+## Practical details
+
+### Markdown Files
+
+### The idea
+
+Any `.md` file present in `/content` will generate a `.html` file in `/dist` with the same relative path (i.e. `/content/blog/2021/01/post.md` generates `/dist/blog/2021/01/post.html`), or with the designated slug. It will be wrapped in the designated template.
+
+### Frontmatter
+
+Frontmatter is a way of adding metadata to a markdown file which is not normally visible once published. In 5sg the must be valid yaml fenced off by three dashes at the beginning of the file. For example:
+
+```md
+---
+title: Lorem Ipsum
+description: This is just a test
+template: MyTemplate
+date: 2015-01-18
+author: Dayton Hahn
+tags:
+  - dolor
+  - sit
+category: amet
+cover: '/cover.jpg'
+---
+
+# Hello world
+
+Your content here
+```
+
+All frontmatter is extracted and saved as metadata for later use by the template or dynamic pages
+
+Certain frontmatter attributes are special:
+
+- **template** Used to designate the template used to wrap the html content. e.g. `template: MyTemplate` will use `/src/client/templates`
+- **permalink** || **path** || **route** || **slug** Used to designate the final path of the generated html. e.g. imagine `/content/myPage.md` has the frontmatter attribute `permalink: /path/to/myPage`; the path to its generated `html` file will be `/dist/path/to/myPage.html`
+
+The following are used by the Default template:
+
+- **title** injected into the `<title/>` of the html file
+- **description** injected into the `<meta name="description" />` of the html file
+
+## Templates
+
+```html
+<script>
+  /** @todo write templates documentation */
+
+  // Each svelte template receives the following props
+  // the rendered content from the source
+  export let htmlContent = '';
+  // the data relative to this content
+  export let data = {};
+</script>
+```
+
+Also
+
+```svelte
+<script context="module">
+  /**
+   * Derives additional props from the node data
+   *
+   * @param {Object} param0
+   * @param {Object} param0.nodeData the data relative to all nodes
+   * @param {Object} param0.data the data relative to this content
+   * @returns {Object} the additional props injected into the component
+   */
+  export const __5sg__deriveProps = ({ nodeData = {}, data = {} }) => {
+    // these will be injected into the component
+    return {
+      postTitles:
+        Object.values(nodeData).map(node) => node.frontmatter.title),
+    };
+  };
+</script>
+
+<script>
+  // the rendered content from the source
+  export let htmlContent = '';
+  // the data relative to this content
+  export let data = {};
+
+  // injected by __5sg__deriveProps
+  export let postTitles = [];
+</script>
+```
+
+## Svelte files
+
+`// TODO`
+
+## nodeData
+
+`// TODO`
+
+```js
+/**
+ * the structure of a single node
+ *
+ * @typedef {Object} ContentNode
+ * @property {ContentData} data the data of the content
+ * @property {string} contents processed html
+ * @property {*} Component the svelte component used for rendering
+ */
+
+/**
+ * The data property of a single node
+ *
+ * @typedef {Object} ContentData
+ * @property  {string} initialPath the initial path of the file e.g. /Users/chris/5sg/content/blog/post   1.md
+ * @property  {string} relPath e.g. blog/post   1.md
+ * @property  {string} fileName e.g. post   1.md
+ * @property  {string} finalPath the relative to the output file of the final rendered content e.g. blog/post1.html OR e.g. designated-slug.html
+ * @property  {string} modified the modified date
+ * @property  {string} created the created date
+ * @property  {boolean} draft is the content a draft?
+ * @property  {string} template The name of the template to use to render, e.g. if "MyTemp", we'll use src/client/templates/MyTemp.svelte
+ * @property  {{title: string, description: string}=} seo the (optiobal) seo content
+ * @property  {Object=} frontmatter  the (optional) frontmatter content extracted from an md file
+ */
+```
+
+## Dynamic pages
+
+`// TODO`
+
+## Post Processing
+
+`// TODO`
+
+## Relative links
+
+`// TODO`
+
+## Image processing
+
+`// TODO`
+
+## Config
+
+`// TODO`
+
+### What the 🤬!? My svelte components DON'T DO ANYTHING
+
+Calm down. Breath. This is normal.
+
+While partial hydration of specific svelte components is on the roadmap, svelte components are not hydrated by default (so click handlers and interactive bits won't work). This is intentional -- we want to make sure that we're not sending extra stuff to the front end since our goal is to respect the end user's data consumption as much as possible.
+
+This means that by default all svelte files should be treated as PRESENTATIONAL components, or templates, if you will.
+
+If a template file, or a svelte page file in the `/content` directory should be hydrated, you must export a `__5sg__hydrate` variable. Make sure to do so in a script tag with `context="module"` so that the export is readable :)
+
+```svelte
+<script context="module>
+  // this page will be interactive 🌈
+  export const __5sg__hydrate = true;
+</script>
+```
 
 ## Motivation
 
@@ -50,6 +242,8 @@ The goal of this project is to create a SSG which fulfills the following require
 4. Build time is minimal
 
 I've found Gatsby, Next.js, and other frameworks to be extremely powerful, but extremely cumbersome. Sometimes you just want to build a blog or a product page and you don't want to be bothered with the whizz-bang details.
+
+I'd like to add some bells and whistles -- some optional configuration, etc. -- but this three-step process should never change. As the name suggests, 5sg is meant to be simple, and to stay simple. If you're building something complex which requires more functionality, this might not be the right starting point for you. Look into one of the big names Gatsby, Next.js, Hugo, Eleventy, Sapper, Jekyl, and Elder.js are well established and tend to be pretty great. That said, 5sg is **also** meant to be a boiler plate, so go nuts changing whatever you want.
 
 ## Why svelte?
 
@@ -66,6 +260,8 @@ More generally, and what I hope the answer to be in the future:
 Also, I suffer from the need to build my own version of things, and this is a good opportunity for me to learn. 🤷‍♀️
 
 ## Roadmap to a v1
+
+See https://github.com/cborchert/5sg/projects/1
 
 If I ever make it to a version 1, the path will look like this
 
@@ -95,7 +291,7 @@ Once the first five tasks are complete, we should do a little refactor and prese
 - [x] 6. Content Improvements pt. 2
   - [x] Add (optional) remark/rehype plugins for
     - [x] Emojis
-    - [ ] ~~Katex:~~ Plugin not working??
+    - [x] ~~Katex:~~ Plugin not working??
     - [x] ~~Prism~~ Prism takes to long, using highlight.js
     - [x] Footnotes
 - [x] 7. Allow for Multiple Templates
@@ -106,10 +302,10 @@ Once the first five tasks are complete, we should do a little refactor and prese
   - [x] Create tags page
   - [x] Create categories page
   - [x] Create a blog feed page
-- [ ] 9. Image Processing
+- [x] 9. Image Processing
   - [x] Preprocess images using sharp
-  - [ ] use sharp or blurhash to create several image sizes
-  - [ ] implement blur up affect for images and reduce page load
+  - [x] use sharp or blurhash to create several image sizes
+  - [x] implement blur up affect for images and reduce page load
 - [ ] 10. Performance
   - [ ] Dev server be very fast and should reload the browser on save using livereload
   - [ ] Reduce build time
@@ -121,7 +317,7 @@ Once the first five tasks are complete, we should do a little refactor and prese
     - [ ] Use next-gen formats with fallbacks
     - [ ] Make sure to correctly size images
     - [ ] Make sure to correctly encode images
-    - [ ] Set image width and height attribute
+    - [x] Set image width and height attribute
 - [ ] 11. Partial Hydration
   - [ ] Allow for use of svelte beyond as a templating language using partial hydration of marked components / templates
 - [ ] 12. More research

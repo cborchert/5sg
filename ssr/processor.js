@@ -126,7 +126,7 @@ const setDataPaths = () => (tree, file = {}) => {
   const { data = {}, cwd, path: filePath } = file;
 
   // assign data all the path data
-  const pathData = getPaths(filePath, cwd);
+  const pathData = getPaths(filePath, cwd, data);
   Object.assign(data, pathData);
 };
 
