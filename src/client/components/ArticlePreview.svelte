@@ -1,11 +1,10 @@
 <script>
   export let node = {};
-  const { frontmatter = {}, seo = {}, path } = node;
-  const { date, author, cover } = frontmatter;
+  const { frontmatter = {}, path } = node;
+  const { date, author, cover, title = '', description = '' } = frontmatter;
   const attribution = `${date ? `Written on ${new Date(date).toDateString()} ` : ''} ${
     author ? `by ${author} ` : ''
   }`.trim();
-  const { title = '', description = '' } = seo;
   const colors = ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c'];
 </script>
 

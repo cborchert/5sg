@@ -31,8 +31,9 @@ try {
  * Sets node.data.seo.title and node.data.seo.description
  *
  * @see https://unifiedjs.com/learn/guide/create-a-plugin/
- *
  * @returns {Function} the plugin
+ * @deprecated
+ * @todo remove
  */
 const extractSeo = () => (tree, file = {}) => {
   const { data = {} } = file;
@@ -148,7 +149,9 @@ const setFileInfo = () => (tree, file = {}) => {
 const standardPlugins = [
   { use: frontmatter, priority: 100 },
   { use: parseFrontmatter, priority: 95 },
-  { use: extractSeo, priority: 50 },
+  // NOTE: extractSeo is kind of useless and obscure. We can trust our users to add a title in the frontmatter and the API for svelte and other files should be the same.
+  // { use: extractSeo, priority: 50 },
+  /** @todo walking trees is an expensive operation -- any tree walkers should be combined if possible */
   { use: setIsDraft, priority: 50 },
   { use: setDataPaths, priority: 50 },
   { use: setFileInfo, priority: 50 },

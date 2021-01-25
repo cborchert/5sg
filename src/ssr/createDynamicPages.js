@@ -34,7 +34,7 @@ const createPages = (content) => {
       // newest first
       return dateA > dateB ? -1 : 1;
     })
-    .map((node) => ({ path: node.data.relPath, frontmatter: node.data.frontmatter, seo: node.data.seo }));
+    .map((node) => ({ path: node.data.relPath, frontmatter: node.data.frontmatter }));
 
   // create paginated blog feed Nodes
   const blogFeedNodes = paginateNodes({

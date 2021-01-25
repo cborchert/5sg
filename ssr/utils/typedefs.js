@@ -10,7 +10,6 @@
  * @property  {string} created the created date
  * @property  {boolean} draft is the content a draft?
  * @property  {string} template The name of the template to use to render, e.g. if "MyTemp", we'll use src/client/templates/MyTemp.svelte
- * @property  {{title: string, description: string}=} seo the (optiobal) seo content
  * @property  {Object=} frontmatter  the (optional) frontmatter content extracted from an md file
  */
 

@@ -10,7 +10,7 @@
   export const __5sg__deriveProps = ({ nodeData }) => ({
     // this will be injected into the component
     pages: Object.entries(nodeData).map(([path, node = {}]) => {
-      const { seo: { title, description } = {} } = node;
+      const { frontmatter: { title, description } = {} } = node;
       return {
         path,
         title,
@@ -24,14 +24,12 @@
 
 <script>
   import Page from '../components/Page.svelte';
-  import Meta from '../components/Meta.svelte';
 
   export let htmlContent = '';
   export let data = {};
 
-  export let siteMetadata = {};
-  const meta = { siteMetadata, ...(data.seo || {}) };
-
+  const { frontmatter: { title, description } = {} } = data;
+  const meta = { title, description };
   let count = 0;
   const increment = () => count++;
   const fizzBuzz = (number) => {
@@ -45,8 +43,7 @@
   export let pages = [];
 </script>
 
-<Meta {...meta} />
-<Page {data} {htmlContent}>
+<Page {meta}>
   <div slot="beforeContent">
     <h1>What a special page!</h1>
     <button on:click={increment}>{fizzBuzz(count)}</button>

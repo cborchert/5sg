@@ -1,16 +1,13 @@
 <script>
   import Page from '../components/Page.svelte';
-  import Meta from '../components/Meta.svelte';
 
   export let data = {};
-  export let siteMetadata = {};
 
   const { taxonomy: categories } = data;
-  const meta = { siteMetadata, title: 'Categories', description: 'All the categories on the example site' };
+  const meta = { title: 'Categories', description: 'All the categories on the example site' };
 </script>
 
-<Meta {...meta} />
-<Page>
+<Page {meta}>
   <h1>Categories:</h1>
   <ul>
     {#each Object.entries(categories) as [categoryName, { path, nodes: categoryPosts }]}

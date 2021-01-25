@@ -24,7 +24,7 @@ const { getPaths } = require('./utils/paths');
 /** @todo  we should *not* depend on something in the src folder in the lib */
 const defaultTemplatePath = path.join(TEMPLATE_DIR, '/Default.svelte');
 
-// conditionally include cofig
+// include cofig
 let config;
 try {
   // eslint-disable-next-line global-require
@@ -66,7 +66,6 @@ const getFulfilled = (settled, errorMessage) =>
  *      modified: string,
  *      created: string,
  *      template: undefined,
- *      seo: undefined, // must be handled by component
  *      frontmatter: {}, // frontmatter
  *    },
  *    contents: "" // processed html
@@ -122,10 +121,6 @@ const processPages = (pageFiles = []) => {
  *      modified: string,
  *      created: string,
  *      template: string,
- *      seo: {
- *        title: string,
- *        description: string,
- *      }
  *      frontmatter: {}, // frontmatter
  *    },
  *    contents: string // processed html
@@ -225,7 +220,6 @@ const postProcessContent = async (processedContent = []) => {
         htmlContent,
         data,
         isDraft: data.draft,
-        siteMetadata,
         // inject all the props derived from the node data
         ...deriveProps({ nodeData, data }),
       };

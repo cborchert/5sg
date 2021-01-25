@@ -1,21 +1,17 @@
 <script>
   import Page from '../components/Page.svelte';
-  import Meta from '../components/Meta.svelte';
   import ArticlePreview from '../components/ArticlePreview.svelte';
 
-  export let siteMetadata = {};
   export let data = {};
 
   const { nodes, term, taxonomy: tags, taxonomyHome: tagsHome } = data;
   const meta = {
-    siteMetadata,
     title: `Tag: ${term}`,
     description: `All the blog posts with the tag of ${term} `,
   };
 </script>
 
-<Meta {...meta} />
-<Page>
+<Page {meta}>
   <h1>Tag: {term}</h1>
   <h2>Posts</h2>
   <ul>

@@ -1,8 +1,11 @@
 <script>
   import Globals from './Globals.svelte';
   import Header from './Header.svelte';
+  import Meta from './Meta.svelte';
+  export let meta = {};
 </script>
 
+<Meta {...meta} />
 <body>
   <Header />
   <slot name="beforeMain" />

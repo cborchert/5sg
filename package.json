@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "author": "Christopher Borchert",
+  "type": "module",
   "dependencies": {
     "@rollup/plugin-node-resolve": "^11.1.0",
     "dotenv": "^8.2.0",

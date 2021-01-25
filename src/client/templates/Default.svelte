@@ -31,7 +31,6 @@
 
 <script>
   import Page from '../components/Page.svelte';
-  import Meta from '../components/Meta.svelte';
   import { getCategoryNames, getCategorySlug, getTagNames, getTagSlug } from '../../shared/blogHelpers';
 
   // the rendered content from the source
@@ -43,12 +42,10 @@
   export let nextPost;
   export let prevPost;
 
-  export let siteMetadata = {};
-  const meta = { siteMetadata, ...(data.seo || {}) };
-
   // extract frontmatter for seo and page header/attrution
   const frontmatter = data.frontmatter || {};
-  const { title, date, author, cover } = frontmatter;
+  const { title, description, date, author, cover } = frontmatter;
+  const meta = { title, description };
   const attribution = `${date ? `Written on ${new Date(date).toDateString()} ` : ''} ${
     author ? `by ${author} ` : ''
   }`.trim();
@@ -58,8 +55,7 @@
   const tags = getTagNames(data);
 </script>
 
-<Meta {...meta} />
-<Page>
+<Page {meta}>
   <div slot="beforeMain">
     {#if cover}
       <img class="cover" src={cover} alt={title} />
