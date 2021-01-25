@@ -1,6 +1,6 @@
 <svelte:head>
   <!-- site manifest and favicons-->
-  <link rel="manifest" href="/static/site.webmanifest" />
+  <link rel="manifest" href="/site.webmanifest" />
   <link rel="icon" type="image/png" href="/static/favicon/favicon.ico" />
 
   <!-- import global css -->

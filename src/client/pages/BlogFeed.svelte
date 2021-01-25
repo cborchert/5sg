@@ -3,8 +3,10 @@
   import ArticlePreview from '../components/ArticlePreview.svelte';
 
   export let data = {};
+  export let siteMetadata = {};
   const { numPages, pageNumber, nodes, pagination } = data;
   const meta = {
+    siteMetadata,
     title: `Blog feed, page ${pageNumber}`,
     description: 'All the blog posts on the example site',
   };

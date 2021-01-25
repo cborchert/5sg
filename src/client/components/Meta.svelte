@@ -1,8 +1,5 @@
 <script>
-  /** @todo conditional import? If config doesn't exist, this is going to crash */
-  import * as config from '../../../config';
-  console.log(config);
-  const { siteMetadata } = config || {};
+  export let siteMetadata = {};
   const { name: siteTitle = '' } = siteMetadata || {};
 
   export let title;

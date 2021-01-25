@@ -1,13 +1,10 @@
 <script>
   import Page from '../src/client/components/Page.svelte';
+  export let siteMetadata = {};
+  const meta = { title: '404', description: 'Lost page', siteMetadata };
 </script>
 
-<svelte:head>
-  <title>404</title>
-  <meta name="description" content="Lost page" />
-</svelte:head>
-
-<Page>
+<Page {meta}>
   <section>
     <div>
       <h1>Woah man. <mark>404</mark>.</h1>

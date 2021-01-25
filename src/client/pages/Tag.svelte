@@ -3,9 +3,11 @@
   import ArticlePreview from '../components/ArticlePreview.svelte';
 
   export let data = {};
+  export let siteMetadata = {};
 
   const { nodes, term, taxonomy: tags, taxonomyHome: tagsHome } = data;
   const meta = {
+    siteMetadata,
     title: `Tag: ${term}`,
     description: `All the blog posts with the tag of ${term} `,
   };

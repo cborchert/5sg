@@ -2,8 +2,9 @@
   import Page from '../components/Page.svelte';
 
   export let data = {};
+  export let siteMetadata = {};
 
-  const meta = { title: 'Tags', description: 'All the tags on the example site' };
+  const meta = { siteMetadata, title: 'Tags', description: 'All the tags on the example site' };
   const { taxonomy: tags } = data;
 </script>
 

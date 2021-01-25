@@ -8,16 +8,13 @@
 <script>
   import Page from '../src/client/components/Page.svelte';
   export const name = 'hydration';
+  export let siteMetadata = {};
   let count = 0;
   const increment = () => count++;
+  const meta = { title: 'Hydrated', description: 'An example of a hydrated page', siteMetadata };
 </script>
 
-<svelte:head>
-  <title>Hydrated</title>
-  <meta name="description" content="An example of a hydrated page" />
-</svelte:head>
-
-<Page>
+<Page {meta}>
   <div slot="beforeContent">
     <section>
       <div>

@@ -220,6 +220,7 @@ const postProcessContent = async (processedContent = []) => {
         htmlContent,
         data,
         isDraft: data.draft,
+        siteMetadata,
         // inject all the props derived from the node data
         ...deriveProps({ nodeData, data }),
       };

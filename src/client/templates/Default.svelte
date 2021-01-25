@@ -37,6 +37,7 @@
   export let htmlContent = '';
   // the data relative to this content
   export let data = {};
+  export let siteMetadata = {};
 
   // these props are injected thanks to __5sg__deriveProps above
   export let nextPost;
@@ -45,7 +46,7 @@
   // extract frontmatter for seo and page header/attrution
   const frontmatter = data.frontmatter || {};
   const { title, description, date, author, cover } = frontmatter;
-  const meta = { title, description };
+  const meta = { siteMetadata, title, description };
   const attribution = `${date ? `Written on ${new Date(date).toDateString()} ` : ''} ${
     author ? `by ${author} ` : ''
   }`.trim();

@@ -1,14 +1,12 @@
 <script>
   import Page from '../src/client/components/Page.svelte';
   export const name = 'world';
+  export let siteMetadata = {};
+
+  const meta = { title: 'Home', description: 'Home page', siteMetadata };
 </script>
 
-<svelte:head>
-  <title>Home</title>
-  <meta name="description" content="Home page" />
-</svelte:head>
-
-<Page>
+<Page {meta}>
   <div slot="beforeContent">
     <section>
       <div>

@@ -27,9 +27,10 @@
 
   export let htmlContent = '';
   export let data = {};
+  export let siteMetadata = {};
 
   const { frontmatter: { title, description } = {} } = data;
-  const meta = { title, description };
+  const meta = { title, description, siteMetadata };
   let count = 0;
   const increment = () => count++;
   const fizzBuzz = (number) => {
