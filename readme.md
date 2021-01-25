@@ -226,7 +226,7 @@ This means that by default all svelte files should be treated as PRESENTATIONAL 
 If a template file, or a svelte page file in the `/content` directory should be hydrated, you must export a `__5sg__hydrate` variable. Make sure to do so in a script tag with `context="module"` so that the export is readable :)
 
 ```svelte
-<script context="module>
+<script context="module">
   // this page will be interactive 🌈
   export const __5sg__hydrate = true;
 </script>
