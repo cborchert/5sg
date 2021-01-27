@@ -127,8 +127,8 @@ const replaceImageLinks = () => (tree, file = {}) => {
       // create image map for srcs from the base directory
       // in this case, the src is used directly as the key
       originalPath = path.join(cwd, src);
-    } else if (properties.src && REGEX_REL_DIR.test(properties.src)) {
-      // deal with relative paths
+    } else if (properties.src && REGEX_REL_DIR.test(properties.src) && !properties.src.startsWith('/static/')) {
+      // deal with relative paths as long as they are not static
       // we'll be updating the sex
       src = path.join(relDirname, properties.src);
       originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
@@ -141,13 +141,16 @@ const replaceImageLinks = () => (tree, file = {}) => {
       height = imageMap[originalPath].height;
       blurSrc = imageMap[originalPath].sizes && imageMap[originalPath].sizes.tiny;
     } else {
-      // set the image map information
-      const metadata = getImageInfo(originalPath);
-      const extension = originalPath.match(REGEX_EXTENSION)[0];
-      blurSrc = src.replace(REGEX_EXTENSION, `__tiny${extension}`);
-      imageMap[originalPath] = { src, sizes: { full: src, tiny: blurSrc }, ...metadata };
-      width = metadata.width;
-      height = metadata.height;
+      // originalPath is only generated if we're using a non-static, relative image
+      if (originalPath) {
+        // set the image map information
+        const metadata = getImageInfo(originalPath);
+        const extension = originalPath.match(REGEX_EXTENSION)[0];
+        blurSrc = src.replace(REGEX_EXTENSION, `__tiny${extension}`);
+        imageMap[originalPath] = { src, sizes: { full: src, tiny: blurSrc }, ...metadata };
+        width = metadata.width;
+        height = metadata.height;
+      }
     }
 
     // update the properties if necessary
