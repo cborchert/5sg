@@ -123,13 +123,15 @@ const replaceImageLinks = () => (tree, file = {}) => {
     let blurSrc = '';
     let originalPath = '';
 
-    if (src.startsWith('/')) {
+    if (src.startsWith('/static')) {
+      // do not process static files
+    } else if (src.startsWith('/') && !properties.src.startsWith('/static/')) {
       // create image map for srcs from the base directory
       // in this case, the src is used directly as the key
       originalPath = path.join(cwd, src);
     } else if (properties.src && REGEX_REL_DIR.test(properties.src) && !properties.src.startsWith('/static/')) {
-      // deal with relative paths as long as they are not static
-      // we'll be updating the sex
+      // deal with relative paths
+      // we'll be updating the src
       src = path.join(relDirname, properties.src);
       originalPath = path.join(cwd, src).replace(REGEX_INVALID_PATH_CHARS, '');
     }
