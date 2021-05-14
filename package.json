@@ -1,0 +1,8 @@
+{
+  "name": "5sg",
+  "version": "1.0.0",
+  "description": "A stupid simple static site generator for svelte",
+  "author": "Christopher Borchert",
+  "license": "MIT",
+  "repository": "https://github.com/cborchert/5sg"
+}
