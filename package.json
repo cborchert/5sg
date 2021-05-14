@@ -4,5 +4,15 @@
   "description": "A stupid simple static site generator for svelte",
   "author": "Christopher Borchert",
   "license": "MIT",
-  "repository": "https://github.com/cborchert/5sg"
+  "repository": "https://github.com/cborchert/5sg",
+  "type": "module",
+  "bin": {
+    "5sg": "./bin/index.js"
+  },
+  "exports": {
+    "./Hydrate": "./lib/components/Hydrate.svelte"
+  },
+  "dependencies": {
+    "arg": "^5.0.0"
+  }
 }
