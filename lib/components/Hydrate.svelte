@@ -23,6 +23,7 @@
   } catch (e) {
     /** @todo: do something about it ? */
   }
+
 </script>
 
 {#if component}
