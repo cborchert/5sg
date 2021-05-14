@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "noImplicitAny": false,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "outDir": "./build",
+        "rootDir": "./",
+        "checkJs": true,
+        "allowJs": true,
+        "experimentalDecorators": true,
+        "moduleResolution": "node",
+        "lib": ["es2020"]
+    },
+    "include": [
+        "**/*.js"
+    ],
+    "exclude": [
+        "./node_modules",
+        "./node_modules/**/*",
+    ]
+}
