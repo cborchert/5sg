@@ -5,15 +5,14 @@ import multiInput from 'rollup-plugin-multi-input';
 import del from 'rollup-plugin-delete';
 import commonjs from '@rollup/plugin-commonjs';
 
-import preprocessMarkdown from './preprocessMarkdown.js';
-import preprocessInjectHydrationPath from './preprocessInjectHydrationPath.js';
-
 /** @TODO make conditional or include in the config */
 import gemoji from 'remark-gemoji';
 import footnotes from 'remark-footnotes';
 import highlight from 'remark-highlight.js';
 import gfm from 'remark-gfm';
 
+import preprocessMarkdown from './preprocessMarkdown.js';
+import preprocessInjectHydrationPath from './preprocessInjectHydrationPath.js';
 /**
  * Builds the rollup config for a given content directory
  * @param {string} srcDir the user src directory which should contain the content directory
@@ -22,7 +21,6 @@ import gfm from 'remark-gfm';
  * @returns {Object} rollupConfig
  */
 /** @todo: consider adding ts to the mix, right ?  */
-/** @todo: put preprocessing back on .md files -- this is just to facilitate testing */
 // const buildRollupConfig = (srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*.md`, `/**/*.js`]) => {
 const buildRollupConfig = (srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*.js`]) => {
   return {

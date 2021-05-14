@@ -6,22 +6,14 @@ import path from 'path';
 import arg from 'arg';
 
 import defaultConfig from './defaultConfig.js';
+import { initBuild } from '../src/build.js';
 
 // Get the arguments from the process
-const cliArgs = arg({
+const args = arg({
   '--serve': Boolean, // if true, will serve the public folder.
   '--log-level': String, // one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'. See https://getpino.io/#/docs/api?id=level-string
   '--port': Number, // the port to serve on
 });
-const argDefaults = {
-  '--serve': false,
-  '--log-level': 'error',
-  '--port': 3221,
-};
-const args = {
-  ...argDefaults,
-  ...cliArgs,
-};
 
 // the path to the directory in which the process was called
 const processDirectory = process.cwd();
@@ -46,5 +38,5 @@ if (configExists) {
   console.warn('No config.js file found. Using default.');
 }
 
-// TO BE CONTINUED...
-// Pass the cwd, config, and arguments into the build command
+// start the build
+initBuild(args, config);

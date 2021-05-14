@@ -1,36 +1,31 @@
 import fs from 'fs-extra';
 import path from 'path';
-import * as rollup from 'rollup';
+import pino from 'pino';
 import htmlParser from 'node-html-parser';
-import chokidar from 'chokidar';
 import _isEqual from 'lodash/isEqual.js';
-import browserSync from 'browser-sync';
 import sharp from 'sharp';
 
-import buildRollupConfig from './bundle/buildRollupConfig.js';
-import hydrationRollupConfig from './bundle/hydrationRollupConfig.js';
-import createComponentHydrationScript from './bundle/hydration/createComponentHydrationScript.js';
-import getDynamicNodes from './getDynamicNodes.js';
-import getCommonJsVars from './utils/getCommonJsVars.js';
+import chokidar from 'chokidar';
+import browserSync from 'browser-sync';
 
-import './typedefs.js';
+import bundle from './utils/bundle/bundle.js';
+import buildRollupConfig from './utils/bundle/buildRollupConfig.js';
+import hydrationRollupConfig from './utils/bundle/hydrationRollupConfig.js';
+import createComponentHydrationScript from './utils/bundle/hydration/createComponentHydrationScript.js';
 
-const SRC_DIR = './src';
-const BUILD_DIR = '.5sg/build';
-const DYNAMIC_DIR = '.5sg/dynamic';
-const DYNAMIC_CONTENT_DIR = '.5sg/dynamic/content';
-const DYNAMIC_BUILD_DIR = '.5sg/dynamic';
-const PUBLIC_DIR = 'public';
+import { getAllDirectoryFiles, isNewer, copyIfNewer, createDir } from './utils/io.js';
+import generateHtmlFileContent from './utils/generateHtmlFileContent.js';
+
+import './types/typedefs.js';
+
+const CWD = process.cwd();
+const SRC_DIR = path.join(CWD, './src');
+const BUILD_DIR = path.join(CWD, '.5sg/build');
+const DYNAMIC_BUILD_DIR = path.join(CWD, '.5sg/dynamic');
+const PUBLIC_DIR = path.join(CWD, './public');
 const STATIC_DIR = `${SRC_DIR}/static`;
 const CONTENT_DIR = `${SRC_DIR}/content`;
 const PUBLIC_STATIC_DIR = `${PUBLIC_DIR}/static`;
-
-/** @todo this needs to be more solid for when this is a package.. */
-const { __dirname } = getCommonJsVars(import.meta.url);
-const ROOT_PATH = __dirname.replace('file://', '');
-
-const REL_BUILD_DIR = `../${BUILD_DIR}`;
-const REL_DYNAMIC_BUILD_DIR = `../${DYNAMIC_BUILD_DIR}`;
 
 /** @todo move to constants dir */
 // matches links starting with http://, https://, file://, //, etc.
@@ -44,10 +39,19 @@ const SERVER_ROOT = '/';
 
 const srcRollupConfig = buildRollupConfig(CONTENT_DIR, BUILD_DIR);
 
+let logger = pino({ prettyPrint: true });
+
 /**
  * It doesn't do much
  */
 const noOp = () => {};
+
+/**
+ * By default, get dynamic nodes doesn't do anything
+ * @param {*} _ dummy input
+ * @returns {Array} an empty array
+ */
+let getDynamicNodes = (_) => [];
 
 /**
  * Gets the base name from the dynamic slug name
@@ -55,25 +59,6 @@ const noOp = () => {};
  * @returns {string} the name
  */
 const getNameFromDynamicSlug = (slug) => slug.replace(/\.dynamic$/, '');
-
-/**
- * recursively get all files in the directory
- * @param {string} dir
- * @returns {Array<string>} the absolute paths to the files
- */
-const getAllDirectoryFiles = (dir) => {
-  const filePaths = [];
-  fs.readdirSync(dir).forEach((item) => {
-    const itemPath = path.join(dir, item);
-    const stat = fs.statSync(itemPath);
-    if (stat.isFile()) {
-      filePaths.push(path.resolve(itemPath));
-    } else if (stat.isDirectory()) {
-      filePaths.push(...getAllDirectoryFiles(itemPath));
-    }
-  });
-  return filePaths;
-};
 
 /**
  * @type {boolean} if true, the pipeline will run at the next opportunity
@@ -111,16 +96,12 @@ let hydrationRollupCache;
 let nodeMap = {};
 
 /**
- * @type {Object<string, Array<string>>} the result path(s) of transforming a file with a given key
- * e.g. transformMap['/path/to/image.jpg'] === ['/path/to/output1.jpg', '/path/to/output2.jpg']
- */
-let transformMap = {};
-
-/**
  * Sets needsBuild to true, tries to start build
+ * @param {boolean=} setIsReady if true, sets readyToBuild to true
  * @returns {void}
  */
-const queueBuild = () => {
+const queueBuild = (setIsReady = false) => {
+  if (setIsReady) readyToBuild = true;
   needsBuild = true;
   startBuild();
 };
@@ -141,131 +122,9 @@ const removeNodeArtifacts = (node) => {
 };
 
 /**
- * Generates the html file content
- * @param {Object} param0
- * @param {?string} param0.head
- * @param {?string} param0.styles
- * @param {?string} param0.html
- * @returns {string} the final html
- */
-const generateHtmlFileContent = ({ head = '', styles = '', html = '' }) => `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        ${head}
-        <style>
-            ${styles}
-        </style>
-    </head>
-    <body>
-        ${html}
-    </body>
-    </html>
-    `;
-
-/**
- * Prepares the content of a file to render the given component
- * @param {string} path the path to the component file to import
- * @param {Object} config
- * @param {Object=} config.props the props to inject into the rendered component. Must be JSON stringifiable
- * @param {string=} config.target the hydration target in the dom, defaults to document.body
- * @param {boolean=} config.hydrate the hydration target in the dom, defaults to document.body
- * @returns {string} the final code
- */
-const generateRenderedFileContent = (path = '', { props = {}, target = 'document.body', hydrate = false }) => `
-import Component from "${path}";
-const component = new Component({
-  target: ${target},
-  props: ${JSON.stringify(props)},
-  hydrate: ${hydrate ? 'true' : 'false'},
-});
-export default component;
-`;
-
-/**
  * @type {NodeMeta} the nodeMeta from the previous build
  */
 let previousNodeMeta = {};
-
-/**
- * Execute rollup config
- * @param {Object} rollupConfig
- * @param {Object=} prevCache
- * @returns {Promise<Object>} the output and cache from the execution of the rollup operation
- */
-const bundle = async (rollupConfig, prevCache) => {
-  // run rollup, using the previous cache
-  const {
-    write: writeBundleFiles,
-    close: closeBundle,
-    cache,
-  } = await rollup.rollup({
-    ...rollupConfig,
-    cache: prevCache,
-  });
-  /** @todo save cache globally, here rather than in main loop, e.g. cache[type]=cache */
-
-  // write the bundled files
-  const { output } = await writeBundleFiles(rollupConfig.output);
-  // wrap up the bundle
-  await closeBundle();
-  return { output, cache };
-};
-
-/**
- * Creates a directory if it doesn't exist
- * @param {string} dir the directory to create
- */
-const createDir = (dir) => {
-  if (!fs.existsSync(dir)) {
-    // errors will be caught by parent
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
-/**
- * Is dest newer than src ?
- * @param {string} src the source file path
- * @param {string} dest the destination file path
- * @returns {boolean} true if dest is newer than src
- */
-const isNewer = (dest, src) => {
-  // no destination => destination is NOT newer
-  if (!fs.existsSync(dest)) return false;
-  // no source => destination IS newer (albeit in a twisted time travel kind of way)
-  if (!fs.existsSync(src)) return true;
-
-  // if both, return true if destination's ctime is later than source's
-  const statSrc = fs.statSync(src);
-  const statDest = fs.statSync(dest);
-  return statDest.ctime > statSrc.ctime;
-};
-
-/**
- * Copy from src to dest if newer
- * @param {string} src the source file path
- * @param {string} dest the destination file path
- * @returns {Promise}
- */
-const copyIfNewer = (src, dest) => {
-  return new Promise(async (resolve, reject) => {
-    // do nothing if there's no src file
-    if (!fs.existsSync(src)) return resolve();
-
-    // create the directory if it doesn't exist
-    const destDir = path.dirname(dest);
-    createDir(destDir);
-
-    // do nothing if destination is newer
-    const destinationIsNewer = isNewer(dest, src);
-    if (destinationIsNewer) return resolve();
-
-    await fs.promises.copyFile(src, dest);
-    return resolve();
-  });
-};
 
 /**
  * Given a file in the src/content directory get its public path
@@ -326,13 +185,11 @@ const startBuild = async () => {
 
   console.time('bundling');
   // 1. Create a bundle of the components used in src/content
-  const { output: srcBundleOutput, cache: srcBundleCache } = await bundle(srcRollupConfig, srcRollupCache).catch(
-    (e) => {
-      console.log(e);
-      return {};
-    },
-  );
-  srcRollupCache = srcBundleCache;
+  const { output: srcBundleOutput } = await bundle(srcRollupConfig, 'content').catch((e) => {
+    console.error('Problem while bundling the content');
+    console.error(e);
+    return {};
+  });
   console.timeEnd('bundling');
 
   console.time('pruning');
@@ -412,7 +269,7 @@ const startBuild = async () => {
             deriveProps,
             hydrate,
             default: Component,
-          } = await import(`${REL_BUILD_DIR}/bundled/${node.fileName}`);
+          } = await import(path.join(BUILD_DIR, `/bundled/${node.fileName}`));
 
           // store the results in the for future reference during this build
           componentCache[facadeModuleId] = { metadata, deriveProps, hydrate, default: Component };
@@ -454,12 +311,11 @@ const startBuild = async () => {
       );
 
       const dynamicRollupConfig = buildRollupConfig('', DYNAMIC_BUILD_DIR, dynamicComponents);
-      const { output: dynamicBundleOutput, cache: dynamicBundleCache } = await bundle(
-        dynamicRollupConfig,
-        dynamicRollupCache,
-      );
-      // cache the output for the future
-      dynamicRollupCache = dynamicBundleCache;
+      const { output: dynamicBundleOutput } = await bundle(dynamicRollupConfig, 'dynamic').catch((e) => {
+        // for the moment swallow errors
+        /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
+        return {};
+      });
 
       // for each dynamic node, import its component and add it to the nodemap
       const dynamicNodeProcessingPromises = dynamicNodes.map(({ component, props, slug }) => {
@@ -479,7 +335,7 @@ const startBuild = async () => {
               deriveProps,
               hydrate,
               default: Component,
-            } = await import(`${REL_DYNAMIC_BUILD_DIR}/bundled/${bundledComponent.fileName}`);
+            } = await import(path.join(DYNAMIC_BUILD_DIR, `/bundled/${bundledComponent.fileName}`));
 
             // and cache it for rendering
             componentCache[facadeModuleId] = {
@@ -627,6 +483,7 @@ const startBuild = async () => {
       new Promise((resolve, reject) => {
         const scriptFileName = scriptPath.replace(/\//g, '-').replace('.svelte', '-hydration.js');
         const outputPath = `${BUILD_DIR}/hydration/${scriptFileName}`;
+        console.log(outputPath);
         const outputDirectory = path.dirname(outputPath);
         const hydrationScriptText = createComponentHydrationScript(scriptPath);
         if (!fs.existsSync(outputDirectory)) {
@@ -645,12 +502,12 @@ const startBuild = async () => {
   );
   await Promise.all(hydrationScriptPromises);
 
-  const { output: hydrationBundleOutput, cache: hydrationBundleCache } = await bundle(
-    hydrationRollupConfig,
-    hydrationRollupCache,
-  );
-  // cache the output for the future
-  hydrationRollupCache = hydrationBundleCache;
+  const { output: hydrationBundleOutput } = await bundle(hydrationRollupConfig, 'hydration').catch((e) => {
+    // for the moment swallow errors
+    /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
+    console.log(e);
+    return {};
+  });
   console.timeEnd('hydrationBundle');
 
   console.time('publish');
@@ -801,6 +658,11 @@ const startBuild = async () => {
           return resolve();
         }
 
+        // skip md and svelte files
+        if (['.svelte', '.md'].includes(path.extname(filePath))) {
+          return resolve();
+        }
+
         // copy other files
         await publishContentFile(filePath);
         return resolve();
@@ -847,25 +709,51 @@ const startBuild = async () => {
   startBuild();
 };
 
-// kick things off by watching the src directory
-const watcher = chokidar.watch([SRC_DIR]);
+export const initBuild = (processArgs, config) => {
+  // get args
+  const argDefaults = {
+    '--serve': false,
+    /** @todo set back to error */
+    // '--log-level': 'error',
+    '--log-level': 'debug',
+    '--port': 3221,
+  };
+  const args = {
+    ...argDefaults,
+    ...processArgs,
+  };
 
-// On file change in the src directory, queue a new build
-watcher.on('add', queueBuild);
-watcher.on('change', queueBuild);
-watcher.on('unlink', queueBuild);
+  logger.level = args['--log-level'];
 
-// when the initial watch is done, we can get rolling
-watcher.on('ready', () => {
-  readyToBuild = true;
-  startBuild();
-});
+  if (config && typeof config.getDynamicNodes === 'function') {
+    getDynamicNodes = config.getDynamicNodes;
+  }
 
-// start dev server
-const server = browserSync.create();
-server.init({
-  server: 'public',
-  watch: true,
-  port: 3221,
-  open: false,
-});
+  if (args['--serve']) {
+    // they want us to serve
+    // kick things off by watching the src directory
+    const watcher = chokidar.watch([SRC_DIR]);
+    // On file change in the src directory, queue a new build
+    watcher.on('add', queueBuild);
+    watcher.on('change', queueBuild);
+    watcher.on('unlink', queueBuild);
+
+    // when the initial watch is done, we can get rolling
+    watcher.on('ready', () => {
+      queueBuild(true);
+    });
+
+    // start dev server
+    const server = browserSync.create();
+    server.init({
+      server: 'public',
+      watch: true,
+      port: args['--port'],
+      open: false,
+    });
+  } else {
+    queueBuild(true);
+  }
+};
+
+export default startBuild;

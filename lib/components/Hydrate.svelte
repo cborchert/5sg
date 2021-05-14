@@ -26,7 +26,7 @@
 
 </script>
 
-{#if component}
+{#if component && hydratedComponentPath}
   <div {id} data-5sg-hydration-component={hydratedComponentPath}>
     <svelte:component this={component} bind:componentPath={hydratedComponentPath} {...props} />
     <textarea data-5sg-hydration-props style="display: none;">{stringifiedProps}</textarea>

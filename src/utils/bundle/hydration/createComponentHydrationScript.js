@@ -1,5 +1,5 @@
 /** @todo during development, this will be from the .5sg/build/hydration folder, but later this path must be towards the npm library */
-const pathTo5sgLib = '../../../5sg';
+const pathTo5sgLib = '5sg';
 /** @todo there has to be a better way to do this */
 const pathToRoot = '../../..';
 
@@ -10,7 +10,7 @@ const pathToRoot = '../../..';
  */
 export default function createComponentHydrationScript(path) {
   return `
-import hydrateComponent from "${pathTo5sgLib}/bundle/hydration/hydrateComponent.js";
+import { hydrateComponent } from "5sg/helpers";
 import Component from "${pathToRoot}/${path}";
 
 export default hydrateComponent({

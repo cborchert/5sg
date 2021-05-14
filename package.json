@@ -10,9 +10,13 @@
     "5sg": "./bin/index.js"
   },
   "exports": {
-    "./Hydrate": "./lib/components/Hydrate.svelte"
+    "./components": "./lib/components/index.js",
+    "./Hydrate": "./lib/components/Hydrate.svelte",
+    "./helpers": "./lib/helpers/index.js",
+    "./package.json": "./package.json"
   },
   "dependencies": {
+    "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "arg": "^5.0.0",
     "browser-sync": "^2.26.14",
@@ -22,6 +26,16 @@
     "module": "^1.2.5",
     "node-html-parser": "^3.3.0",
     "path": "^0.12.7",
+    "pino": "^6.11.3",
+    "pino-pretty": "^4.8.0",
+    "remark": "^13.0.0",
+    "remark-footnotes": "^3.0.0",
+    "remark-frontmatter": "^3.0.0",
+    "remark-gemoji": "^6.0.0",
+    "remark-gfm": "^1.0.0",
+    "remark-highlight.js": "^6.0.0",
+    "remark-html": "^13.0.1",
+    "remark-parse-frontmatter": "^1.0.3",
     "rollup": "^2.47.0",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-multi-input": "^1.2.0",

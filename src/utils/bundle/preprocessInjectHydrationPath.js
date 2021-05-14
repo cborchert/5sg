@@ -41,6 +41,9 @@ const preprocessInjectHydrationPath = () => {
      */
     // @ts-ignore TSLint thinks that attributes isn't on the imported object
     script: async ({ content, attributes, filename }) => {
+      // only process svelte files
+      // TODO remove condition?
+      if (!['.svelte'].includes(path.extname(filename).toLowerCase())) return { code: content };
       // add the component path to the files exports for module exports as well as props props
       content = `\nexport const componentPath = "${filename}";\n${content}`;
       return { code: content };
