@@ -105,6 +105,10 @@ const queueBuild = (setIsReady = false) => {
   startBuild();
 };
 
+// will be the dev server if --serve
+let server;
+let serverConfig = {};
+
 /** @todo */
 const siteMeta = {};
 
@@ -490,7 +494,6 @@ const startBuild = async () => {
       new Promise((resolve, reject) => {
         const scriptFileName = scriptPath.replace(/\//g, '-').replace('.svelte', '-hydration.js');
         const outputPath = `${BUILD_DIR}/hydration/${scriptFileName}`;
-        console.log(outputPath);
         const outputDirectory = path.dirname(outputPath);
         const hydrationScriptText = createComponentHydrationScript(scriptPath);
         if (!fs.existsSync(outputDirectory)) {
@@ -715,6 +718,11 @@ const startBuild = async () => {
   // indicate that the build has finished
   building = false;
   console.timeEnd('build');
+
+  // start the server if it isn't yet started
+  if (server && !server.active) {
+    server.init(serverConfig);
+  }
   // try to start the next build if necessary
   startBuild();
 };
@@ -743,6 +751,15 @@ export const initBuild = (processArgs, config) => {
   }
 
   if (args['--serve']) {
+    // create the server
+    server = browserSync.create();
+    serverConfig = {
+      server: 'public',
+      watch: true,
+      port: args['--port'],
+      open: false,
+    };
+
     // they want us to serve
     // kick things off by watching the src directory
     const watcher = chokidar.watch([SRC_DIR]);
@@ -763,15 +780,6 @@ export const initBuild = (processArgs, config) => {
     // when the initial watch is done, we can get rolling
     watcher.on('ready', () => {
       queueBuild(true);
-    });
-
-    // start dev server
-    const server = browserSync.create();
-    server.init({
-      server: 'public',
-      watch: true,
-      port: args['--port'],
-      open: false,
     });
   } else {
     queueBuild(true);
