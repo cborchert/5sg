@@ -746,6 +746,34 @@ const startBuild = async () => {
 
   console.timeEnd('sitemap');
 
+  /** build sitemap */
+  console.time('manifest');
+  try {
+    const manifest = {
+      name: userConfig?.siteMeta?.name || '',
+      short_name: userConfig?.siteMeta?.short_name || '',
+      description: userConfig?.siteMeta?.description || '',
+      icons: userConfig?.siteMeta?.icons || '',
+      theme_color: userConfig?.siteMeta?.theme_color || '',
+      background_color: userConfig?.siteMeta?.background_color || '',
+      display: userConfig?.siteMeta?.display || '',
+    };
+    const outputPath = `${PUBLIC_DIR}/site.webmanifest`;
+    const outputDirectory = path.dirname(outputPath);
+
+    // save text file
+    // start by creating the directory
+    if (!fs.existsSync(outputDirectory)) {
+      // errors will be caught by parent
+      fs.mkdirSync(outputDirectory, { recursive: true });
+    }
+    // write content to file
+    fs.writeFileSync(outputPath, JSON.stringify(manifest));
+  } catch (e) {
+    logger.error(e);
+  }
+  console.timeEnd('manifest');
+
   // save the current nodeMeta for the next build to make things quicker
   previousNodeMeta = nodeMeta;
   // indicate that the build has finished
