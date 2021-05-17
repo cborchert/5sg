@@ -710,6 +710,7 @@ const startBuild = async () => {
 };
 
 export const initBuild = (processArgs, config) => {
+  /** @todo delete previous build */
   // get args
   const argDefaults = {
     '--serve': false,
@@ -734,9 +735,9 @@ export const initBuild = (processArgs, config) => {
     // kick things off by watching the src directory
     const watcher = chokidar.watch([SRC_DIR]);
     // On file change in the src directory, queue a new build
-    watcher.on('add', queueBuild);
-    watcher.on('change', queueBuild);
-    watcher.on('unlink', queueBuild);
+    watcher.on('add', () => queueBuild(false));
+    watcher.on('change', () => queueBuild(false));
+    watcher.on('unlink', () => queueBuild(false));
 
     // when the initial watch is done, we can get rolling
     watcher.on('ready', () => {

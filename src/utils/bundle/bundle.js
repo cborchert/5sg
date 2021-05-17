@@ -13,10 +13,14 @@ const BUNDLE_CACHE = {};
  * @returns {Promise<Object>} the output and cache from the execution of the rollup operation
  */
 export default async function bundle(rollupConfig, cacheName) {
-  // get the previous cache
-  const prevCache = (cacheName && BUNDLE_CACHE[cacheName]) || false;
+  /**
+   * @todo: if rollupConfig.input has no hits, skip ?
+   * We're running into an issue where if you save a file with no changes, it will start the rollup process,
+   * deleting the old files, and then when it gets to hydration, there's nothing to create, so it errors out
+   */
 
-  console.log({ cacheName, prevCache: !!prevCache });
+  // get the previous cache
+  const prevCache = cacheName && BUNDLE_CACHE[cacheName];
 
   // run rollup, using the previous cache
   const {
