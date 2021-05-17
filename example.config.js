@@ -4,9 +4,12 @@ import highlight from 'remark-highlight.js';
 import gfm from 'remark-gfm';
 
 export default {
-  // where is the root of the site ? this could be a domain or a path to a folder from the root
+  // where is the root of the site ? this is the path to the site from the root of the domain
   // default is '/'
   serverRoot: '/',
+  // the site url (note: siteUrl + serverUrl = homepage)
+  // used for building the sitemeta
+  siteUrl: 'http://example.com',
   // what should the layouts be? _ is default.
   // default is undefined
   layouts: { blog: `src/layouts/Blog.svelte`, _: `src/layouts/Page.svelte` },

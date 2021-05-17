@@ -709,7 +709,43 @@ const startBuild = async () => {
   await staticCopyPromise;
   console.timeEnd('static');
 
-  /** @todo build sitemap */
+  /** build sitemap */
+  console.time('sitemap');
+  try {
+    const siteRoot = `${_get(userConfig, 'siteUrl', '').replace(/\/$/, '')}${_get(
+      userConfig,
+      'serverRoot',
+      '/',
+    ).replace(/\/$/, '')}`;
+    const pagePaths = Object.values(nodeMap).map((contentNode) => `${siteRoot}/${contentNode.publicPath}`);
+    const outputPath = `${PUBLIC_DIR}/sitemap.txt`;
+    const outputDirectory = path.dirname(outputPath);
+
+    // save text file
+    // start by creating the directory
+    if (!fs.existsSync(outputDirectory)) {
+      // errors will be caught by parent
+      fs.mkdirSync(outputDirectory, { recursive: true });
+    }
+    // write content to file
+    fs.writeFileSync(outputPath, pagePaths.join('\n'));
+
+    // add to robots.txt
+    const robotsSrcPath = path.join(CONTENT_DIR, '/robots.txt');
+    const robotsPublicPath = path.join(PUBLIC_DIR, '/robots.txt');
+    const robotsSitemapEntry = `Sitemap: ${siteRoot}/sitemap.txt`;
+    // copy robots.txt over to public or create a new one
+    if (fs.existsSync(robotsSrcPath)) {
+      fs.copyFileSync(robotsSrcPath, robotsPublicPath);
+    } else {
+      fs.writeFileSync(robotsPublicPath, '');
+    }
+    fs.appendFileSync(path.join(PUBLIC_DIR, '/robots.txt'), `\n${robotsSitemapEntry}`);
+  } catch (e) {
+    logger.error(e);
+  }
+
+  console.timeEnd('sitemap');
 
   // save the current nodeMeta for the next build to make things quicker
   previousNodeMeta = nodeMeta;
