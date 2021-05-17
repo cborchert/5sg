@@ -14,8 +14,11 @@ export default {
   // default is [highlight, gfm, gemoji]
   remarkPlugins: [highlight, gfm, gemoji, footnotes],
   // Given the nodeMeta, returns the information necessary to render some dynamic pages
-
   getDynamicNodes: () => [],
+  // the site meta passed in as props to each layout as siteMeta
+  siteMeta: {
+    name: '5sg',
+  },
   // ADVANCED USAGE
   // what preprocessors should we apply to the svelte and markdown files ?
   // if this is defined, it will override the default 5sg preprocessors

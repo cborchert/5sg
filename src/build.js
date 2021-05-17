@@ -109,9 +109,6 @@ const queueBuild = (setIsReady = false) => {
 let server;
 let serverConfig = {};
 
-/** @todo */
-const siteMeta = {};
-
 /**
  * Deletes artifacts / created files associated with the node
  * @param {ContentNode} node
@@ -422,9 +419,10 @@ const startBuild = async () => {
           // this allows each component to not receive all the data from the entire site as props
           const derivedProps = deriveProps({ nodeMeta, nodeData });
 
+          console.log(_get(userConfig, 'siteMeta', {}));
           const props = {
             nodeData,
-            siteMeta,
+            siteMeta: _get(userConfig, 'siteMeta', {}),
             ...derivedProps,
             ...additionalProps,
           };
