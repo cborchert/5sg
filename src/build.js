@@ -419,7 +419,6 @@ const startBuild = async () => {
           // this allows each component to not receive all the data from the entire site as props
           const derivedProps = deriveProps({ nodeMeta, nodeData });
 
-          console.log(_get(userConfig, 'siteMeta', {}));
           const props = {
             nodeData,
             siteMeta: _get(userConfig, 'siteMeta', {}),
