@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import pino from 'pino';
 import htmlParser from 'node-html-parser';
+import _get from 'lodash/get.js';
 import _isEqual from 'lodash/isEqual.js';
 import sharp from 'sharp';
 
@@ -33,11 +34,9 @@ const REGEX_EXTERNAL_LINK = /^[A-Za-z0-9]*:?\/\//;
 // paths starting with / are absolute paths
 const REGEX_IS_ABSOLUTE_PATH = /^\//;
 
-/** @todo get from config */
-// this could be a subdirectory or a url
-const SERVER_ROOT = '/';
+let userConfig;
 
-const srcRollupConfig = buildRollupConfig(CONTENT_DIR, BUILD_DIR);
+let srcRollupConfig = buildRollupConfig({ srcDir: CONTENT_DIR, buildDir: BUILD_DIR });
 
 let logger = pino({ prettyPrint: true });
 
@@ -313,7 +312,12 @@ const startBuild = async () => {
         [],
       );
 
-      const dynamicRollupConfig = buildRollupConfig('', DYNAMIC_BUILD_DIR, dynamicComponents);
+      const dynamicRollupConfig = buildRollupConfig({
+        srcDir: '',
+        buildDir: DYNAMIC_BUILD_DIR,
+        targets: dynamicComponents,
+        config: userConfig,
+      });
       const { output: dynamicBundleOutput } = await bundle(dynamicRollupConfig, 'dynamic').catch((e) => {
         // for the moment swallow errors
         /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
@@ -508,7 +512,6 @@ const startBuild = async () => {
   const { output: hydrationBundleOutput } = await bundle(hydrationRollupConfig, 'hydration').catch((e) => {
     // for the moment swallow errors
     /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
-    console.log(e);
     return {};
   });
   console.timeEnd('hydrationBundle');
@@ -544,12 +547,12 @@ const startBuild = async () => {
               link.setAttribute('target', '_blank');
             } else if (REGEX_IS_ABSOLUTE_PATH.test(href)) {
               // treat absolute paths starting with /
-              const finalPath = path.join(SERVER_ROOT, href.replace(/\.\w+$/, '.html'));
+              const finalPath = path.join(_get(userConfig, 'serverRoot', '/'), href.replace(/\.\w+$/, '.html'));
               link.setAttribute('href', finalPath);
             } else {
               // deal with relative paths
               const relPath = path.join(path.dirname(publicPath), href);
-              const finalPath = path.join(SERVER_ROOT, relPath.replace(/\.\w+$/, '.html'));
+              const finalPath = path.join(_get(userConfig, 'serverRoot', '/'), relPath.replace(/\.\w+$/, '.html'));
               link.setAttribute('href', finalPath);
             }
           });
@@ -566,11 +569,11 @@ const startBuild = async () => {
 
             if (REGEX_IS_ABSOLUTE_PATH.test(src)) {
               // treat absolute paths starting with /
-              finalSrc = path.join(SERVER_ROOT, src);
+              finalSrc = path.join(_get(userConfig, 'serverRoot', '/'), src);
             } else {
               // deal with relative paths
               const relPath = path.join(path.dirname(publicPath), src);
-              finalSrc = path.join(SERVER_ROOT, relPath);
+              finalSrc = path.join(_get(userConfig, 'serverRoot', '/'), relPath);
             }
 
             // old solution
@@ -717,13 +720,14 @@ const startBuild = async () => {
 };
 
 export const initBuild = (processArgs, config) => {
+  userConfig = config;
+
   /** @todo delete previous build */
   // get args
   const argDefaults = {
     '--serve': false,
     /** @todo set back to error */
-    // '--log-level': 'error',
-    '--log-level': 'debug',
+    '--log-level': 'error',
     '--port': 3221,
   };
   const args = {
@@ -735,6 +739,7 @@ export const initBuild = (processArgs, config) => {
 
   if (config && typeof config.getDynamicNodes === 'function') {
     getDynamicNodes = config.getDynamicNodes;
+    srcRollupConfig = buildRollupConfig({ srcDir: CONTENT_DIR, buildDir: BUILD_DIR, config });
   }
 
   if (args['--serve']) {
