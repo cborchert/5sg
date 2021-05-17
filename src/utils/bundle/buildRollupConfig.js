@@ -21,8 +21,7 @@ import preprocessInjectHydrationPath from './preprocessInjectHydrationPath.js';
  * @returns {Object} rollupConfig
  */
 /** @todo: consider adding ts to the mix, right ?  */
-// const buildRollupConfig = (srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*.md`, `/**/*.js`]) => {
-const buildRollupConfig = (srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*.js`]) => {
+const buildRollupConfig = (srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*.md`, `/**/*.js`]) => {
   return {
     input: targets.map((target) => `${srcDir}${target}`),
     treeshake: false,

@@ -74,6 +74,11 @@ const preprocessMarkdown = ({ layouts = {}, remarkPlugins = [] } = {}) => {
 
         const { data, messages, history, cwd, contents } = parsed;
 
+        /**
+         * @todo consider doing this in a way that would keep existing script tags intact
+         * that way we could basically mimic mdx
+         */
+
         // form script context="module" tag
         let layoutInternalsStatement = importLayoutPath
           ? `import LAYOUT_5SG, * as layoutInternals from '${importLayoutPath}';`
@@ -89,6 +94,9 @@ const preprocessMarkdown = ({ layouts = {}, remarkPlugins = [] } = {}) => {
         moduleTag += '\n\texport {metadata, layoutPath, deriveProps};';
         moduleTag += `\n</script>`;
 
+        /**
+         * @todo same here. If we don't support mdsvex, then we can imitate it here by making htmlContent = content, and parsing certain parts (paying special attention to code fences)
+         */
         // form content
         let htmlContent = `{@html \`${contents.toString().replace('`', '\\``')}\`}`;
         if (importLayoutPath) {

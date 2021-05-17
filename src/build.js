@@ -155,8 +155,11 @@ const publishContentFile = (filePath) => {
  * @returns void
  */
 const startBuild = async () => {
+  logger.debug('build process initiated');
+  logger.debug({ needsBuild, building, readyToBuild });
   // we won't build unless we need to and we can
   if (!needsBuild || building || !readyToBuild) {
+    logger.debug("we don't need to build");
     return;
   }
   console.log('building');
@@ -689,10 +692,14 @@ const startBuild = async () => {
   const staticCopyPromise = new Promise((resolve, reject) => {
     fs.remove(PUBLIC_STATIC_DIR, (removeErr) => {
       if (removeErr) return reject(removeErr);
-      fs.copy(STATIC_DIR, PUBLIC_STATIC_DIR, (copyErr) => {
-        if (copyErr) return reject(copyErr);
+      if (fs.existsSync(STATIC_DIR)) {
+        fs.copy(STATIC_DIR, PUBLIC_STATIC_DIR, (copyErr) => {
+          if (copyErr) return reject(copyErr);
+          return resolve();
+        });
+      } else {
         return resolve();
-      });
+      }
     });
   });
   await staticCopyPromise;
@@ -735,9 +742,18 @@ export const initBuild = (processArgs, config) => {
     // kick things off by watching the src directory
     const watcher = chokidar.watch([SRC_DIR]);
     // On file change in the src directory, queue a new build
-    watcher.on('add', () => queueBuild(false));
-    watcher.on('change', () => queueBuild(false));
-    watcher.on('unlink', () => queueBuild(false));
+    watcher.on('add', (fileName) => {
+      logger.debug(`file added: ${fileName}`);
+      queueBuild(false);
+    });
+    watcher.on('change', (fileName) => {
+      logger.debug(`file modified: ${fileName}`);
+      queueBuild(false);
+    });
+    watcher.on('unlink', (fileName) => {
+      logger.debug(`file removed: ${fileName}`);
+      queueBuild(false);
+    });
 
     // when the initial watch is done, we can get rolling
     watcher.on('ready', () => {
