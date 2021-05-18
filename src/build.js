@@ -320,6 +320,7 @@ const startBuild = async () => {
         config: userConfig,
       });
       const { output: dynamicBundleOutput } = await bundle(dynamicRollupConfig, 'dynamic').catch((e) => {
+        logger.error(e);
         // for the moment swallow errors
         /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
         return {};
