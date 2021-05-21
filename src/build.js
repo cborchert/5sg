@@ -404,7 +404,6 @@ const startBuild = async () => {
     async (facadeModuleId) =>
       new Promise(async (resolve, reject) => {
         try {
-          const hydratedComponents = new Set();
           const node = nodeMap[facadeModuleId];
           const { isRendered, prevProps, name, publicPath } = node;
 
@@ -443,6 +442,12 @@ const startBuild = async () => {
           const localPropsHasNoDiff = _isEqual(props, prevProps);
           node.prevProps = props;
           if (isRendered && localPropsHasNoDiff) {
+            // but we still will need to build the node's hydrated components 😉
+            if (node.hydratedComponents) {
+              node.hydratedComponents.forEach((componentPath) => {
+                hydratedComponentsToBuild.add(componentPath);
+              });
+            }
             resolve();
             return;
           }
@@ -452,6 +457,8 @@ const startBuild = async () => {
           let head = templateHeadContent;
 
           // prepare partial hydration
+          // reinitialize the node's hydratedComponents set and the
+          node.hydratedComponents = new Set();
           // @ts-ignore tslint is having trouble with htmlParser -- it thinks that it's already the parse method
           // for each hydratable component present on the page
           // - add a script tag to the header to flag the import of the component hydration script
@@ -459,9 +466,9 @@ const startBuild = async () => {
           const htmlRoot = htmlParser.parse(html);
           htmlRoot.querySelectorAll('[data-5sg-hydration-component]').forEach((el) => {
             const importPath = el.getAttribute('data-5sg-hydration-component');
-            hydratedComponents.add(importPath);
+            node.hydratedComponents.add(importPath);
           });
-          hydratedComponents.forEach((componentPath) => {
+          node.hydratedComponents.forEach((componentPath) => {
             head += `<script data-5sg-hydration-src="${componentPath}"></script>`;
             hydratedComponentsToBuild.add(componentPath);
           });

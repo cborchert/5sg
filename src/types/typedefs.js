@@ -7,6 +7,7 @@
  * @property {boolean} isDynamic if true, the ContentNode was created dynamically rather than from a file
  * @property {boolean} isRendered if true, the ContentNode has been rendered
  * @property {Object=} prevProps the props last used to render the html
+ * @property {Set<string>=} hydratedComponents the hydrated components of the component
  */
 
 /**
