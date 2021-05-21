@@ -323,9 +323,6 @@ const startBuild = async () => {
         /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
         return {};
       });
-
-      console.log(dynamicBundleOutput)
-
       // for each dynamic node, import its component and add it to the nodemap
       const dynamicNodeProcessingPromises = dynamicNodes.map(({ component, props, slug }) => {
         return new Promise(async (resolve, reject) => {
