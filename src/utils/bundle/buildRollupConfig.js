@@ -44,7 +44,7 @@ const buildRollupConfig = ({ srcDir, buildDir, targets = [`/**/*.svelte`, `/**/*
     },
     plugins: [
       multiInput.default({ relative: `${srcDir}` }),
-      del({ targets: buildDir }),
+      del({ targets: `${buildDir}/bundled` }),
       svelte({
         // By default, all ".svelte" files are compiled
         extensions: ['.svelte', '.md'],

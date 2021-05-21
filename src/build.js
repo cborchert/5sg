@@ -115,8 +115,24 @@ let serverConfig = {};
  */
 const removeNodeArtifacts = (node) => {
   if (!node) return;
-  /** @todo delete all artifacts! */
+  const { publicPath } = node;
+  if (publicPath) {
+    logger.debug('removing artifacts for ', node.facadeModuleId);
+    // remove public directory file
+    fs.unlink(`${PUBLIC_DIR}/${publicPath}`, (err) => {
+      if (err && err.code !== 'ENOENT') {
+        logger.error(err);
+      }
+    });
 
+    // remove rendered directory file
+    /** @todo consider leaving the rendered file */
+    fs.unlink(`${BUILD_DIR}/rendered/${publicPath}`, (err) => {
+      if (err && err.code !== 'ENOENT') {
+        logger.error(err);
+      }
+    });
+  }
   // the node now counts as not rendered
   node.isRendered = false;
 };
@@ -189,8 +205,8 @@ const startBuild = async () => {
   console.time('bundling');
   // 1. Create a bundle of the components used in src/content
   const { output: srcBundleOutput } = await bundle(srcRollupConfig, 'content').catch((e) => {
-    console.error('Problem while bundling the content');
-    console.error(e);
+    logger.error('Problem while bundling the content');
+    logger.error(e);
     return {};
   });
   console.timeEnd('bundling');
@@ -295,81 +311,81 @@ const startBuild = async () => {
 
   console.time('dynamic');
   // 5. create dynamic pages
-    // delete all existing dynamic nodes
-    Object.values(nodeMap).forEach((contentNode) => {
-      if (contentNode.isDynamic) removeNode(contentNode.facadeModuleId);
+  // delete all existing dynamic nodes
+  Object.values(nodeMap).forEach((contentNode) => {
+    if (contentNode.isDynamic) removeNode(contentNode.facadeModuleId);
+  });
+
+  // getDynamicNodes
+  const dynamicNodes = getDynamicNodes(Object.values(nodeMeta));
+
+  if (dynamicNodes.length) {
+    // For each dynamic node
+    // bundle the components
+    const dynamicComponents = dynamicNodes.reduce(
+      (prev, { component }) => (prev.includes(component) ? prev : [...prev, component]),
+      [],
+    );
+
+    const dynamicRollupConfig = buildRollupConfig({
+      srcDir: '',
+      buildDir: DYNAMIC_BUILD_DIR,
+      targets: dynamicComponents,
+      config: userConfig,
     });
+    const { output: dynamicBundleOutput } = await bundle(dynamicRollupConfig, 'dynamic').catch((e) => {
+      logger.error(e);
+      // for the moment swallow errors
+      /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
+      return {};
+    });
+    // for each dynamic node, import its component and add it to the nodemap
+    const dynamicNodeProcessingPromises = dynamicNodes.map(({ component, props, slug }) => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // the slug will be used as the unique key, and the slug minus the dynamic extension will be used as the name
+          const facadeModuleId = slug;
+          const name = getNameFromDynamicSlug(facadeModuleId);
 
-    // getDynamicNodes
-    const dynamicNodes = getDynamicNodes(Object.values(nodeMeta));
+          // import the dynamic node's component
+          const bundledComponent = dynamicBundleOutput.find(({ facadeModuleId = '', isEntry, fileName }) => {
+            return isEntry && facadeModuleId.endsWith(component) && fileName;
+          });
+          if (!bundledComponent) return;
+          const {
+            metadata,
+            deriveProps,
+            hydrate,
+            default: Component,
+          } = await import(path.join(DYNAMIC_BUILD_DIR, `/bundled/${bundledComponent.fileName}`));
 
-    if (dynamicNodes.length) {
-      // For each dynamic node
-      // bundle the components
-      const dynamicComponents = dynamicNodes.reduce(
-        (prev, { component }) => (prev.includes(component) ? prev : [...prev, component]),
-        [],
-      );
+          // and cache it for rendering
+          componentCache[facadeModuleId] = {
+            metadata,
+            deriveProps,
+            hydrate,
+            default: Component,
+            additionalProps: props,
+          };
 
-      const dynamicRollupConfig = buildRollupConfig({
-        srcDir: '',
-        buildDir: DYNAMIC_BUILD_DIR,
-        targets: dynamicComponents,
-        config: userConfig,
+          // add the dynamic node to the nodemap
+          nodeMap[facadeModuleId] = {
+            facadeModuleId,
+            fileName: undefined,
+            name,
+            isDynamic: true,
+            isRendered: false,
+            prevProps: undefined,
+            publicPath: `${name}.html`,
+          };
+
+          resolve();
+        } catch {
+          reject();
+        }
       });
-      const { output: dynamicBundleOutput } = await bundle(dynamicRollupConfig, 'dynamic').catch((e) => {
-        logger.error(e);
-        // for the moment swallow errors
-        /** @todo detect whether there are files to bundle before running the bundler. if there's no files to process, this will throw */
-        return {};
-      });
-      // for each dynamic node, import its component and add it to the nodemap
-      const dynamicNodeProcessingPromises = dynamicNodes.map(({ component, props, slug }) => {
-        return new Promise(async (resolve, reject) => {
-          try {
-            // the slug will be used as the unique key, and the slug minus the dynamic extension will be used as the name
-            const facadeModuleId = slug;
-            const name = getNameFromDynamicSlug(facadeModuleId);
-
-            // import the dynamic node's component
-            const bundledComponent = dynamicBundleOutput.find(({ facadeModuleId = '', isEntry, fileName }) => {
-              return isEntry && facadeModuleId.endsWith(component) && fileName;
-            });
-            if (!bundledComponent) return;
-            const {
-              metadata,
-              deriveProps,
-              hydrate,
-              default: Component,
-            } = await import(path.join(DYNAMIC_BUILD_DIR, `/bundled/${bundledComponent.fileName}`));
-
-            // and cache it for rendering
-            componentCache[facadeModuleId] = {
-              metadata,
-              deriveProps,
-              hydrate,
-              default: Component,
-              additionalProps: props,
-            };
-
-            // add the dynamic node to the nodemap
-            nodeMap[facadeModuleId] = {
-              facadeModuleId,
-              fileName: undefined,
-              name,
-              isDynamic: true,
-              isRendered: false,
-              prevProps: undefined,
-              publicPath: `${name}.html`,
-            };
-
-            resolve();
-          } catch {
-            reject();
-          }
-        });
-      });
-      await Promise.allSettled(dynamicNodeProcessingPromises);
+    });
+    await Promise.allSettled(dynamicNodeProcessingPromises);
   }
   console.timeEnd('dynamic');
 
@@ -378,7 +394,7 @@ const startBuild = async () => {
   const globalPropsHasNoDiff = siteMetaDataHasNoDiff && nodeMetaDataHasNoDiff;
 
   // 6 -> 7 -> 8 is a series which should occur for each node, but each node can happen in parallel.
-
+  debugger;
   console.time('render');
   const hydratedComponentsToBuild = new Set();
   // 6. render each content node
@@ -788,11 +804,9 @@ const startBuild = async () => {
 export const initBuild = (processArgs, config) => {
   userConfig = config;
 
-  /** @todo delete previous build */
   // get args
   const argDefaults = {
     '--serve': false,
-    /** @todo set back to error */
     '--log-level': 'error',
     '--port': 3221,
   };
@@ -802,6 +816,15 @@ export const initBuild = (processArgs, config) => {
   };
 
   logger.level = args['--log-level'];
+
+  // delete previous build
+  if (fs.existsSync(PUBLIC_DIR)) {
+    fs.rmdir(PUBLIC_DIR, { recursive: true }, (err) => {
+      if (err) {
+        logger.error(err);
+      }
+    });
+  }
 
   if (config && typeof config.getDynamicNodes === 'function') {
     getDynamicNodes = config.getDynamicNodes;
