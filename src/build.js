@@ -355,6 +355,7 @@ const startBuild = async () => {
           const {
             metadata,
             deriveProps,
+            /** @todo : remove. we're using partial hydration for everything*/
             hydrate,
             default: Component,
           } = await import(path.join(DYNAMIC_BUILD_DIR, `/bundled/${bundledComponent.fileName}`));

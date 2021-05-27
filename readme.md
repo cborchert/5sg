@@ -24,7 +24,7 @@ _Templates Coming Soon_
 
 ### Small files and partial hydration
 
-All generated html is feather-weight with no javascript unless needed.
+All generated html is feather-weight and the client loads no javascript unless needed.
 
 All images are processed to use modern formats where possible.
 
@@ -32,10 +32,9 @@ All images are processed to use modern formats where possible.
 
 Customize everything from config.js
 
-- Your sitemap and webmanifest are taken care for you
+- Your sitemap and webmanifest are taken care of for you
 - You can easily add dynamically rendered pages such as a blog feed and category pages
 - You can apply custom layouts to your pages, either defined by the content path or the `layout` entry in the content's frontmatter
--
 
 ## More nitty-gritty
 
@@ -92,14 +91,15 @@ All svelte components are rendered to static html, and, by default, that's where
 
 However if you need the component to be hydrated (i.e. interactive), you can use the custom `<Hydrate />` component from `5sg`.
 Hydrate accepts two props:
-`component`: the component to hydrate
-and `props`: the component's props
+
+- `component`: the component to hydrate
+- and `props`: the component's props
 
 Example:
 
 ```svelte
 <script>
-   import Hydrate from "5sg/Hydrate";
+  import Hydrate from "5sg/Hydrate";
   import Count from "../components/Count.svelte";
 </script>
 
@@ -112,26 +112,28 @@ Note that the rendered component will be placed in a `<div>` which may have layo
 
 ### Custom markdown preprocessors
 
-By default, markdown files are processed using remark and the following plugins:
+By default, markdown files are processed using [remark](https://github.com/remarkjs/remark/tree/main/packages/remark) and the following plugins:
 
-highlight: to process code fences (you need to add the appropriate global for highlighting to work),
-gfm: to add github style markdown transformations
-and gemoji: to transform emojis
+[remark-highlight.js](https://github.com/remarkjs/remark-highlight.js#readme): to process code fences (you need to add the appropriate global for highlighting to work),
+[remark-gfm](https://github.com/remarkjs/remark-gfm#readme): to add github style markdown transformations
+and [remark-gemoji](https://github.com/remarkjs/remark-gemoji#readme): to transform emojis
 
 If you want to change this, simply define the `remarkPlugins` property as an array of plugins in `config.js`
 
 ```js
+// config.js
 import gemoji from 'remark-gemoji';
 import footnotes from 'remark-footnotes';
 import highlight from 'remark-highlight.js';
 import gfm from 'remark-gfm';
 
 export default {
+  // ...other config
   remarkPlugins: [highlight, gfm, gemoji, footnotes],
 };
 ```
 
-if you need to pass options to the plugin you can do so by passing an array
+if you need to pass options to the plugin you can do so by passing an tuple: `[plugin, options]`:
 
 ```js
 import gemoji from 'remark-gemoji';
@@ -144,13 +146,133 @@ export default {
 };
 ```
 
+### Syntax highlighting
+
+Although we're using `remark-highlight.js` by default to enable syntax highlighting in code fences, you need to include one of their themes. There's an explorer [here](https://highlightjs.org/static/demo/), and you can use a cdn to include the styles (see [the highlight.js usage page](https://highlightjs.org/usage/)), or download one of the styles from [their repo](https://github.com/highlightjs/highlight.js/tree/main/src/styles) and include it yourself.
+
 ### Custom Layouts
 
-### Markdown Frontmatter
+By default, content is thrown into a plain old html wrapper. In order to give it some style, you'll need to be able to assign it a layout. A layout is simply a svelte file which contains a `<slot />` that the transformed content is injected into.
 
-### Dynamically built pages
+For example, the markdown content
+
+```md
+# Hello [world](http://www.example.com) !
+```
+
+plus the layout
+
+```svelte
+
+<div>
+  <nav><a href="/">Home</a></nav>
+  <main>
+    <slot />
+  </main>
+</div>
+
+<svelte:head>
+  <!-- import global css -->
+  <link rel="stylesheet" href="/static/styles/global.css" />
+  <!-- highlight.js theme for highlighting code blocks (for blogs and documentation sites, etc.) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
+</svelte:head>
+
+<style>
+  main {
+    width: 1024px;
+    margin: 20px auto;
+  }
+</style>
+
+```
+
+would result in an html file kindof like this
+
+```html
+<html>
+  <head>
+    <link rel="stylesheet" href="/static/styles/global.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css" />
+    <style>
+      main {
+        width: 1024px;
+        margin: 20px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <nav><a href="/">Home</a></nav>
+      <main>
+        <h1>Hello <a href="http://www.example.com">world</a></h1>
+      </main>
+    </div>
+  </body>
+</html>
+```
+
+You can define the layouts in the `config.js` file
+
+```js
+// config.js
+export default {
+  // ...other config
+  layouts: { blog: `src/layouts/Blog.svelte`, _: `src/layouts/Page.svelte` },
+};
+```
+
+a markdown file will use the `_` layout by default, and it will use any other layout based on one of two things:
+
+1. If its directory relative to `src/content` matches the layout name. For example, by default all files in `src/content/blog` will use the `blog` layout.
+2. If the frontmatter property `layout` matches the layout name.
+
+Of note:
+
+- If the frontmatter property is defined, it supercedes the directory-based layout
+- If the frontmatter property `layout` === false, no layout will be used.
+- The layout name is case insensitive
+
+### Markdown Frontmatter in Layouts
+
+Layouts receive all properties declared in a markdown file's frontmatter as an object prop called `metadata`.
+
+Example:
+
+```md
+---
+title: qui eius qui quisquam!
+date: 2021-01-01T20:52:15.045Z
+tags:
+  - perferendis
+  - foo
+  - bar
+layout: false
+---
+
+# Hello world
+```
+
+```svelte
+<script>
+  export let metadata = {};
+  const { title, date, tags, layout } = metadata;
+  // title: string === "qui eius qui quisquam!"
+  // date: string === "2021-01-01T20:52:15.045Z"
+  // tags: string[] === ["perferendis", "foo", "bar"]
+  // layout: boolean === false
+  // note, if we had had `layout: blog`, then layout would be a string "blog"
+</script>
+
+<slot />
+
+```
+
+### Layout deriveProps
 
 ### Site Meta and SEO
+
+### Dynamically built pages
 
 ### Image processing
 
