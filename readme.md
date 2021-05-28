@@ -16,7 +16,19 @@
 
 ### Installation using a template
 
-_Templates Coming Soon_
+You can install a 5sg template using [degit](https://www.npmjs.com/package/degit)
+
+```
+npm install -g degit
+degit cborchert/5sg-basic-template my-5sg-site
+```
+
+For more complicated a blog starter
+
+```
+npm install -g degit
+degit cborchert/5sg-blog-template my-5sg-blog
+```
 
 ### Intuitive paths
 
@@ -270,13 +282,23 @@ layout: false
 
 ### Layout deriveProps
 
+** TODO **
+
 ### Site Meta and SEO
+
+** TODO **
 
 ### Dynamically built pages
 
+** TODO **
+
 ### Image processing
 
+** TODO **
+
 ### More config.js
+
+** TODO **
 
 ## Questions and answers
 
