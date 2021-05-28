@@ -1,6 +1,6 @@
 {
   "name": "5sg",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A stupid simple static site generator for svelte",
   "author": "Christopher Borchert",
   "license": "MIT",
