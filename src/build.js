@@ -845,8 +845,8 @@ export const initBuild = (processArgs, config) => {
 
   if (config && typeof config.getDynamicNodes === 'function') {
     getDynamicNodes = config.getDynamicNodes;
-    srcRollupConfig = buildRollupConfig({ srcDir: CONTENT_DIR, buildDir: BUILD_DIR, config });
   }
+  srcRollupConfig = buildRollupConfig({ srcDir: CONTENT_DIR, buildDir: BUILD_DIR, config });
 
   if (args['--serve']) {
     // create the server
