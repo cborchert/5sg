@@ -95,6 +95,11 @@ let hydrationRollupCache;
 let nodeMap = {};
 
 /**
+ * @type {Object<string, Array<string>>} a map between the input file and the transformed output file(s)
+ */
+let transformationMap = {};
+
+/**
  * Sets needsBuild to true, tries to start build
  * @param {boolean=} setIsReady if true, sets readyToBuild to true
  * @returns {void}
@@ -681,6 +686,8 @@ const startBuild = async () => {
             return sharp(filePath).resize(800, 400, { fit: 'inside', withoutEnlargement: true }).toFile(resultPath);
           };
           const transformImagePromises = paths.map(transformer);
+          // add an entry to the transformation map
+          transformationMap[filePath] = paths;
           await Promise.allSettled(transformImagePromises);
           return resolve();
         }
@@ -692,6 +699,8 @@ const startBuild = async () => {
 
         // copy other files
         await publishContentFile(filePath);
+        // add an entry to the transformation map
+        transformationMap[filePath] = [getContentFilePublicPath(filePath)];
         return resolve();
         // else, if the file fits one of the patterns / extensions
         //    check the previous transformMap[filePath]
@@ -863,6 +872,16 @@ export const initBuild = (processArgs, config) => {
     });
     watcher.on('unlink', (fileName) => {
       logger.debug(`file removed: ${fileName}`);
+      // if transformed file(s) previously existed in the public folder, then delete the artifacts
+      if (transformationMap[fileName]) {
+        transformationMap[fileName].forEach((pathToDelete) => {
+          fs.unlink(pathToDelete, (err) => {
+            if (err && err.code !== 'ENOENT') {
+              logger.error(err);
+            }
+          });
+        });
+      }
       queueBuild(false);
     });
 
