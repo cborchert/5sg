@@ -18,16 +18,24 @@
 
 You can install a 5sg template using [degit](https://www.npmjs.com/package/degit)
 
+For a basic starter site use the template at https://github.com/cborchert/5sg-basic-template
+
 ```
 npm install -g degit
 degit cborchert/5sg-basic-template my-5sg-site
+cd my-5sg-site
+npm install
+npm run dev
 ```
 
-For more complicated a blog starter
+For more complicated a blog site use the blog template at https://github.com/cborchert/5sg-blog-template
 
 ```
 npm install -g degit
 degit cborchert/5sg-blog-template my-5sg-blog
+cd my-5sg-blog
+npm install
+npm run dev
 ```
 
 ### Intuitive paths
