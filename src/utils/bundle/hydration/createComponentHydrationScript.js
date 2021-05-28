@@ -13,7 +13,7 @@ export default function createComponentHydrationScript(path) {
 import { hydrateComponent } from "5sg/helpers";
 import Component from "${pathToRoot}/${path}";
 
-export default hydrateComponent({
+hydrateComponent({
     Component,
     selector: '[data-5sg-hydration-component="${path}"]',
 });
