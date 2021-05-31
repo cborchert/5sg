@@ -411,7 +411,7 @@ const startBuild = async () => {
       new Promise(async (resolve, reject) => {
         try {
           const node = nodeMap[facadeModuleId];
-          const { isRendered, prevProps, name, publicPath } = node;
+          const { isRendered, prevProps, name, publicPath, fileName, isDynamic } = node;
 
           // retrieve the module from the cache
           const {
@@ -428,9 +428,13 @@ const startBuild = async () => {
             return;
           }
 
+          // give a limited version of the node data
           const nodeData = {
             facadeModuleId,
             name,
+            fileName,
+            isDynamic,
+            publicPath,
           };
 
           // calculate the derived props.

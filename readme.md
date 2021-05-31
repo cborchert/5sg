@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-### Intuitive paths
+### Intuitive, file-based routing
 
 `src/content/foo/bar.(md|svelte)` generates `public/foo/bar.html`
 
@@ -55,6 +55,14 @@ Customize everything from config.js
 - Your sitemap and webmanifest are taken care of for you
 - You can easily add dynamically rendered pages such as a blog feed and category pages
 - You can apply custom layouts to your pages, either defined by the content path or the `layout` entry in the content's frontmatter
+
+### Dynamic pages
+
+If you're building a blog, you'll probably want a blogfeed. 5sg provides a way to build dynamic pages using your content.
+
+### Access your content data at every inpoint
+
+Using the special `deriveProps` export, every layout and top level `.svelte` file has access to the meta data of every other file.This means that you can easily create navigation between sibling blog posts, for example.
 
 ## More nitty-gritty
 
@@ -252,6 +260,7 @@ Of note:
 - If the frontmatter property is defined, it supercedes the directory-based layout
 - If the frontmatter property `layout` === false, no layout will be used.
 - The layout name is case insensitive
+- Layouts are not applied to svelte components by default. You can just import the component and use it in your svelte component.
 
 ### Markdown Frontmatter in Layouts
 
@@ -288,13 +297,177 @@ layout: false
 
 ```
 
-### Layout deriveProps
+### Layout and svelte file deriveProps
 
-** TODO **
+Top-level svelte files (i.e. .svelte files in the content folder, layout files, and dynamic page files) have access to the meta data of all content nodes in the project. For the moment the way to access this data is a bit convoluted, and it was done this way as a way to get around atrociously large files in the build process. There may be a better way, and this is one of those things that, we might expect to change in a v1 release.
+
+Here's how it works:
+
+You can export a function called `deriveProps` from the `context="module"` script of your page/layout file which takes in all the content node data, and transforms it into props to be injected into the component.
+
+Here's a basic reference of `deriveProps`:
+
+```js
+/**
+ * @typedef {Object} NodeMetaEntry
+ * @property {Object} metadata the exported frontmatter
+ * @property {string} publicPath the publish path with extension
+ */
+
+/**
+ * @typedef {Object} ContentNode a single block of content in the nodeMap
+ * @property {string} facadeModuleId the path of the input file
+ * @property {string} fileName the path relative to .5sg/build/bundled for the component
+ * @property {string} name the publish path / slug
+ * @property {string} publicPath the publish path with extension
+ * @property {boolean} isDynamic if true, the ContentNode was created dynamically rather than from a file
+ */
+
+/**
+ *
+ * @param {Object} context the context of the current content node
+ * @param {Object<string, NodeMetaEntry>} context.nodeMeta all the content node information, where the key is the path of the content node and the value is the content node meta information
+ * @param {ContentNode} context.nodeData the content node information of the current node
+ * @returns {Object} the props to be injected into the component
+ */
+function deriveProps(context) {
+  const { nodeMeta = {}, nodeData = {} } = context;
+
+  return {
+    //... the injected derived props
+  };
+}
+```
+
+#### A basic example
+
+```svelte
+<script context="module">
+  export const deriveProps = ({ nodeMeta = {} }) => {
+    const numberOfContentNodes = Object.keys(nodeMeta).length;
+    return {
+      numberOfContentNodes,
+    }
+  }
+</script>
+
+<script>
+  // injected from deriveProps
+  export let numberOfContentNodes;
+</script>
+
+<h1>There are {numberOfContentNodes} in this project</h1>
+```
+
+#### A more complicated example
+
+```svelte
+<script context="module">
+  // layouts/Blog.svelte
+
+  export const deriveProps = ({ nodeMeta = {}, nodeData = { name: "" } }) => {
+    // create sibling pages
+
+    // get an array containing only blog nodes, sorted by date
+    const blogPages = Object.values(nodeMeta)
+      // get all the content nodes in the src/content/blog/ directory
+      .filter((node) => node.publicPath.startsWith("blog/"))
+      // sort by date
+      .sort((a, b) => {
+        const dateA = (a.metadata && a.metadata.date) || "";
+        const dateB = (b.metadata && b.metadata.date) || "";
+        // newest first
+        return dateA > dateB ? -1 : 1;
+      });
+
+    // get the current node's position in the array
+    const currentPath = `${nodeData.publicPath}`;
+    const currentIndex = blogPages.findIndex(
+      (node) => node.publicPath === currentPath;
+    );
+
+    // get the siblings
+
+    // the previous or false
+    const prevPost = currentIndex > 0 && blogPages[currentIndex - 1];
+
+    // the next or false
+    const nextPost =
+      currentIndex < blogPages.length - 1 && blogPages[currentIndex + 1];
+
+    // these will be injected into the component
+    return {
+      nextPost,
+      prevPost,
+    };
+  };
+</script>
+
+<script>
+  // these props are injected thanks to deriveProps above
+  export let nextPost;
+  export let prevPost;
+</script>
+
+<article>
+  <slot />
+  <footer>
+    <nav>
+      <ul class="sibling-navigation">
+        <li>
+          {#if prevPost}
+            <a href="/{prevPost.publicPath}">← {prevPost.metadata.title}</a>
+          {/if}
+        </li>
+        <li>
+          {#if nextPost}
+            <a href="/{nextPost.publicPath}">{nextPost.metadata.title} →</a>
+          {/if}
+        </li>
+      </ul>
+    </nav>
+  </footer>
+</article>
+```
 
 ### Site Meta and SEO
 
-** TODO **
+The site meta data from config.js is injected into each top-level svelte component (layout, content page, and dynamically rendered page) as the prop `siteMeta`.
+
+For example, if in `config.js` you have
+
+```
+export default {
+  siteMeta: {
+    name: "My 5sg site!",
+  }
+}
+```
+
+then in the template `Page.svelte` or in the content file `src/content/index.svelte` you could have
+
+```svelte
+<script>
+  export let siteMeta = {};
+  const { name } = siteMeta;
+</script>
+
+<h1>Welcome to {name}</h1>
+```
+
+Additionally, the following siteMeta values are used to create a `site.webmanifest` file:
+
+```
+name,
+short_name,
+description,
+icons,
+theme_color,
+background_color,
+display,
+```
+
+see the [web.dev guide on manifests](https://web.dev/add-manifest/) for more information.
 
 ### Dynamically built pages
 
@@ -302,14 +475,32 @@ layout: false
 
 ### Image processing
 
-** TODO **
+** TODO: Better docs **
+
+Basic idea: all .jpg image files which are not in the static folder will be transformed into images which are at most 800w by 400h. We add .avif and .webp file versions, and then we transform all image tags into picture tags with sources.
+
+This will likely be refined before v1, and it will be customizable.
 
 ### More config.js
 
 ** TODO **
+
+### The static folder
+
+The `src/static` folder is copied directly to `public/static` without any transformations.
 
 ## Questions and answers
 
 ### What's the deal with the tsconfig file ?
 
 This project doesn't use Typescript, yet, mostly because I wanted to avoid a build step. But I nonetheless wanted to make sure that I had a way to implement type-safety. I'm using a weird mash up of js-doc style type declarations along with a ts-config file so that my text editor and linter can catch type errors. It's hacky, but what about this project ISN'T ?
+
+## Inspirations
+
+5sg was inspired by Gatsby, ElderJS, 11ty, Grav, and MDSvex. I did extensive research on partial hydration after the version 0 was finished, and would like to thank the developers of ElderJS and 7ty for their implementations which made the most sense to me.
+
+## Future plans
+
+Check the project [v1 release candidate](https://github.com/cborchert/5sg/projects/2). Once I have a v1, I truly doubt that I'll do much more work on this other than bugfixes. Hopefully sveltekit gets to a point (and it seems to be rapidly becoming the case), where this project will become obsolete.
+
+Also, the documentation needs A LOT of work. Sorry for anyone who got this far and has no idea what's going on.
