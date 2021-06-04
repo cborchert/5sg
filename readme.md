@@ -469,21 +469,375 @@ display,
 
 see the [web.dev guide on manifests](https://web.dev/add-manifest/) for more information.
 
-### Dynamically built pages
+### Dynamically built pages using config.getDynamicNodes
 
-** TODO **
+In addition to pages rendered based on existing .svelte or .md files, you can create pages dynamically using the `getDynamicNodes` property of the config object exported by `config.js`.
+
+`getDynamicNodes` is a function which receives an array of all non-dynamic node metaData and which must return an array of dynamic page nodes to build.
+
+```js
+/**
+ * @typedef {Object} NodeMetaEntry
+ * @property {Object=} metadata the extracted metadata from the frontmatter (md) or the named export `metadata` from the svelte context="module" script tag
+ * @property {string} publicPath the final html path
+ */
+
+/**
+ * @typedef {Object} RenderablePage
+ * @property {Object} props the props to render the component with
+ * @property {string} slug the identifier of the page to be rendered (use .dynamic as the extension)
+ * @property {string} component the path to the rendering component from the project root
+ */
+
+/**
+ * Given the nodeMeta, returns the information necessary to render some dynamic pages
+ * @param {Array<NodeMetaEntry>} nodes
+ * @returns {Array<RenderablePage>}
+ */
+const getDynamicNodes = (nodes = []) => [];
+```
+
+We could create a simple page like this
+
+```js
+//config.js
+
+export default {
+  getDynamicNodes: () => [
+    // will create a page at path/to/customPage.html using the CustomPage svelte file injected with the props {foo: "bar" }
+    {
+      props: { foo: 'bar' },
+      component: 'src/pages/CustomPage.svelte',
+      slug: 'path/to/customPage.dynamic',
+    },
+  ],
+};
+```
+
+This could be useful, for example, for creating a blogfeed
+
+```js
+//config.js
+
+export default {
+  getDynamicNodes: (nodes = []) => [
+    {
+      props: { blogPosts: nodes.filter(({ publicPath }) => publicPath.startsWith('/blog')) },
+      component: 'src/pages/BlogFeed.svelte',
+      slug: 'blog/index.dynamic',
+    },
+  ],
+};
+```
+
+While the example above is possible, it doesn't hold any real advantage over simply using deriveProps.
+
+What would be more useful, for example, is using `getDynamicNodes` to create a paginated blog feed, where each page contains 10 posts. Here's a somewhat naïve implemenation:
+
+```js
+//config.js
+
+export default {
+  getDynamicNodes: (nodes = []) => {
+    const pages = [];
+    const blogPosts = nodes.filter(({ publicPath }) => publicPath.startsWith('/blog'));
+
+    let totalBlogPages = 1;
+    let posts = [];
+
+    blogPosts.forEach((post, i) => {
+      posts.push(post);
+      // every 10 posts, create a new page
+      // also create a new page if we're at the end of the array
+      if (posts.length === 10 || i === blogPosts.length - 1) {
+        pages.push({
+          props: { blogPosts: [...posts], currentPage: totalBlogPages, totalNumberOfPosts: blogPosts.length },
+          component: 'src/pages/BlogFeed.svelte',
+          slug: `blog/${totalBlogPages}.dynamic`,
+        });
+        // if we're not on the last post, set up the next batch
+        if (i < blogPosts.length - 1) {
+          posts = [];
+          totalBlogPages++;
+        }
+      }
+    });
+
+    // additional props to make pagination easier
+    pages.forEach((page, i) => {
+      page.props.totalBlogPages = totalBlogPages;
+      page.props.nextBlogPageSlug = i === totalBlogPages ? undefined : pages[i + 1].props.slug;
+      page.props.prevBlogPageSlug = i > 1 ? pages[i - 1].props.slug : undefined;
+    });
+
+    // return the pages to be created
+    return pages;
+  },
+};
+```
+
+In order to help with what we think will be relatively recurrent operations when creating dynamic pages, we've included some helper functions which can be imported from `5sg/helpers`
+
+#### getDynamicSlugFromName
+
+Doc:
+
+```js
+/**
+ * Formats a name to a dynamic slug which can be universally recognized
+ * @param {string} name the page name
+ * @returns {string} the dynamic slug
+ */
+```
+
+Example:
+
+```js
+import { getDynamicSlugFromName } from '5sg/helpers';
+
+const slug = getDynamicSlugFromName('this/is/my/name');
+// slug === 'this/is/my/name.dynamic';
+```
+
+#### paginateNodeCollection
+
+Doc:
+
+```js
+/**
+ * Given an array of nodes, returns an array paginated nodes to be rendered
+ * @param {Array<NodeMetaEntry>} nodes the collection of nodes
+ * @param {object} config the pagination config
+ * @param {number=} config.perPage the number of nodes to put on a single page 10
+ * @param {(i:number)=>string=} config.slugify a function to transform the page number into the slug/path/unique key of the page i => i
+ * @param {string=} config.component the component to render each page
+ * @returns {Array<RenderablePage>} the paginated node collection
+ */
+```
+
+Example:
+
+```js
+import { paginateNodeCollection } from '5sg/helpers';
+
+const pages = paginateNodeCollection(
+  [
+    { metadata: { a: 1 }, publicPath: 'test1.html' },
+    { metadata: { a: 2 }, publicPath: 'test2.html' },
+    { metadata: { a: 3 }, publicPath: 'test3.html' },
+    { metadata: { a: 4 }, publicPath: 'test4.html' },
+    { metadata: { a: 5 }, publicPath: 'test5.html' },
+  ],
+  {
+    perPage: 2,
+    slugify: (i) => `test/page-${i + 1}.dynamic`,
+    component: 'path/to/MyComponent.svelte',
+  },
+);
+
+// Result
+const result = [
+  {
+    props: {
+      nodes: [
+        { metadata: { a: 1 }, publicPath: 'test1.html' },
+        { metadata: { a: 2 }, publicPath: 'test2.html' },
+      ],
+      pageNumber: 0,
+      numPages: 3,
+      pageSlugs: ['test/page-1.dynamic', 'test/page-2.dynamic', 'test/page-3.dynamic'],
+    },
+    slug: 'test/page-1.dynamic',
+    component: 'path/to/MyComponent.svelte',
+  },
+  {
+    props: {
+      nodes: [
+        { metadata: { a: 3 }, publicPath: 'test3.html' },
+        { metadata: { a: 4 }, publicPath: 'test4.html' },
+      ],
+      pageNumber: 1,
+      numPages: 3,
+      pageSlugs: ['test/page-1.dynamic', 'test/page-2.dynamic', 'test/page-3.dynamic'],
+    },
+    slug: 'test/page-2.dynamic',
+    component: 'path/to/MyComponent.svelte',
+  },
+  {
+    props: {
+      nodes: [{ metadata: { a: 5 }, publicPath: 'test5.html' }],
+      pageNumber: 2,
+      numPages: 3,
+      pageSlugs: ['test/page-1.dynamic', 'test/page-2.dynamic', 'test/page-3.dynamic'],
+    },
+    slug: 'test/page-3.dynamic',
+    component: 'path/to/MyComponent.svelte',
+  },
+];
+```
+
+#### sortByNodeDate
+
+Docs:
+
+```js
+/**
+ * a sort function to sort by date
+ * @param {NodeMetaEntry} a
+ * @param {NodeMetaEntry} b
+ * @returns {-1|1} the sort order
+ */
+```
+
+Example:
+
+```js
+const nodes = [
+  { metadata: { date: '2021-01-03', a: 1 }, publicPath: 'test.html' },
+  { metadata: { date: '2021-03-03', a: 2 }, publicPath: 'test2.html' },
+  { metadata: { date: '2020-05-30', a: 2 }, publicPath: 'test3.html' },
+].sort(sortByNodeDate);
+
+// Result
+const result = [
+  { metadata: { date: '2021-03-03', a: 2 }, publicPath: 'test2.html' },
+  { metadata: { date: '2021-01-03', a: 1 }, publicPath: 'test.html' },
+  { metadata: { date: '2020-05-30', a: 2 }, publicPath: 'test3.html' },
+];
+```
+
+#### filterByNodePath
+
+Docs:
+
+```js
+/**
+ * Creates a function to filter the nodes by their public path
+ * @param {string} dir the path to filter by
+ * @returns {(NodeMetaEntry)=>boolean}
+ */
+```
+
+Example:
+
+```js
+const nodes = [
+  { metadata: { a: 1 }, publicPath: 'blog/test.html' },
+  { metadata: { a: 2 }, publicPath: 'other/test2.html' },
+  { metadata: { a: 3 }, publicPath: 'blog/test3.html' },
+].filter(filterByNodePath('blog/'));
+
+// Result
+const result = [
+  { metadata: { a: 1 }, publicPath: 'blog/test.html' },
+  { metadata: { a: 3 }, publicPath: 'blog/test3.html' },
+];
+```
+
+#### filterByNodeFrontmatter
+
+Docs:
+
+```js
+/**
+ * Creates a function to filter the nodes by their frontmatter
+ * Returns true if the given key equals the given value OR if the given key contains the given value (if an array)
+ * @param {string} key the frontmatter entry key
+ * @param {any} val the frontmatter entry value to test against
+ * @returns {(NodeMetaEntry)=>boolean}
+ */
+```
+
+Example:
+
+```js
+// get all nodes with metadata.tags including 'bacon
+
+const nodes = [
+  { metadata: { tags: ['bacon', 'eggs', 'cheese'] }, publicPath: 'blog/test.html' },
+  { metadata: { tags: ['cheese'] }, publicPath: 'other/test2.html' },
+  { metadata: { tags: ['eggs', 'cheese'] }, publicPath: 'blog/test3.html' },
+  { metadata: { tags: 'bacon' }, publicPath: 'blog/test4.html' },
+].filter(filterByNodeFrontmatter('tags', 'bacon'));
+
+// Result
+const result = [
+  { metadata: { tags: ['bacon', 'eggs', 'cheese'] }, publicPath: 'blog/test.html' },
+  { metadata: { tags: 'bacon' }, publicPath: 'blog/test4.html' },
+];
+```
+
+#### getFrontmatterTerms
+
+Docs:
+
+```js
+/**
+ * Gathers all the existing values of a given frontmatter entry on a node collection
+ * @param {Array<NodeMetaEntry>} nodes the collection of nodes
+ * @param {string} key the frontmatter entry key to collect the values of
+ * @param {(any)=>any} transform the function to apply to each term (for example a=>a.toLowerCase())
+ * @returns {Array}
+ */
+```
+
+Example:
+
+```js
+const nodes = [
+  { metadata: { foo: ['A', 'b', 'c'] } },
+  { metadata: { foo: 'd' } },
+  { metadata: { foo: ['e', 'C'] } },
+  { metadata: { bar: ['lol'] } },
+];
+const terms = getFrontmatterTerms(nodes, 'foo', (a) => a.toLowerCase());
+
+// result
+const result = ['a', 'b', 'c', 'd', 'e'];
+```
+
+#### groupByFrontmatterTerms
+
+Docs:
+
+```js
+/**
+ * Groups a node collection by the values in a given frontmatter entry
+ * @param {Array<NodeMetaEntry>} nodes the collection of nodes
+ * @param {string} key the frontmatter entry key to collect the values of
+ * @param {(any)=>any} transform the function to apply to each term (for example a=>a.toLowerCase())
+ * @returns {Object<string, Array<NodeMetaEntry>>} the grouped nodes
+ */
+```
+
+Example:
+
+```js
+const node1 = { metadata: { foo: ['A', 'b', 'c'] } };
+const node2 = { metadata: { foo: 'd' } };
+const node3 = { metadata: { foo: ['e', 'C'] } };
+const node4 = { metadata: { bar: ['lol'] } };
+const nodes = [node1, node2, node3, node4];
+
+const groupedNodes = groupByFrontmatterTerms(nodes, 'foo', (a) => a.toLowerCase());
+
+// result
+const result = {
+  a: [node1],
+  b: [node1],
+  c: [node1, node3],
+  d: [node2],
+  e: [node3],
+};
+```
+
+For an example of how all of this can be used together take a look at the `getDynamicNodes` in the blog template: https://github.com/cborchert/5sg-blog-template/blob/main/config.js
 
 ### Image processing
 
-** TODO: Better docs **
-
-Basic idea: all .jpg image files which are not in the static folder will be transformed into images which are at most 800w by 400h. We add .avif and .webp file versions, and then we transform all image tags into picture tags with sources.
+All .jpg image files which are not in the static folder will be transformed into images which are at most 800w by 400h. We add .avif and .webp file versions, and then we transform all image tags into picture tags with sources.
 
 This will likely be refined before v1, and it will be customizable.
-
-### More config.js
-
-** TODO **
 
 ### The static folder
 
@@ -503,4 +857,48 @@ This project doesn't use Typescript, yet, mostly because I wanted to avoid a bui
 
 Check the project [v1 release candidate](https://github.com/cborchert/5sg/projects/2). Once I have a v1, I truly doubt that I'll do much more work on this other than bugfixes. Hopefully sveltekit gets to a point (and it seems to be rapidly becoming the case), where this project will become obsolete.
 
-Also, the documentation needs A LOT of work. Sorry for anyone who got this far and has no idea what's going on.
+Also, the documentation needs A LOT of work. Sorry for anyone who got this far and has no idea what's going on. No promises, but if there's enough demand, I will probably go through and make a few tutorials and/or clean up the documentation
+
+## How fast is it?
+
+In my test project which contains 100 images, 994 static pages / posts (md/svelte), and dynamic blogfeed, category, and tags pages resulting in a total of 1124 page total built, the first build takes 30 seconds on my macbook pro, and 3.5 additional seconds when a file is modified.
+
+The experience is pretty subjective, but it seems more or less consistent with what I've seen elsewhere: it's quick.
+
+### First build
+
+```
+building
+bundling: 10.612s
+pruning: 0.007ms
+nodeMap: 0.948ms
+import: 901.282ms
+dynamic: 234.995ms
+render: 1.113s
+hydrationBundle: 131.178ms
+publish: 773.428ms
+transform: 16.434s
+static: 11.309ms
+sitemap: 1.579ms
+manifest: 0.201ms
+build: 30.216s
+```
+
+### After a modification
+
+```
+building
+bundling: 2.555s
+pruning: 28.73ms
+nodeMap: 3.191ms
+import: 255.307ms
+dynamic: 84.215ms
+render: 180.369ms
+hydrationBundle: 61.854ms
+publish: 246.609ms
+transform: 28.427ms
+static: 17.949ms
+sitemap: 1.734ms
+manifest: 0.211ms
+build: 3.471s
+```
