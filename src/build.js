@@ -595,6 +595,12 @@ const startBuild = async () => {
               // treat external images
               return;
             }
+            if (path.extname(src).toLowerCase() !== '.jpg') {
+              // only treat jpg images
+              // TODO: this solution might not be what people are expecting... might be worth looking into something better.
+              return;
+            }
+
             let finalSrc = '';
 
             if (REGEX_IS_ABSOLUTE_PATH.test(src)) {
@@ -606,19 +612,19 @@ const startBuild = async () => {
               finalSrc = path.join(_get(userConfig, 'serverRoot', '/'), relPath);
             }
 
-            // old solution
-            // image.setAttribute('src', finalSrc);
-
             // replace image with picture
+            const classes = new Array(image.classList).join(' ');
             const srcExt = path.extname(finalSrc);
             const sources = [finalSrc.replace(srcExt, '.avif'), finalSrc.replace(srcExt, '.webp')].map(
               (srcSet) => `<source srcset="${srcSet}" />`,
             );
-            sources.push(`<img src="${finalSrc}" />`);
-            const classes = new Array(image.classList).join(' ');
-            const alt = image.getAttribute('alt');
             // @ts-ignore tslint is having trouble with htmlParser -- it thinks that it's already the parse method
-            const picture = htmlParser.parse(`<picture class="${classes}" alt="${alt}">${sources.join('')}</picture>`);
+            const newBaseImage = htmlParser.parse(image.toString());
+            newBaseImage.setAttribute('src', finalSrc);
+            sources.push(newBaseImage.toString());
+
+            // @ts-ignore tslint is having trouble with htmlParser -- it thinks that it's already the parse method
+            const picture = htmlParser.parse(`<picture>${sources.join('')}</picture>`);
             image.replaceWith(picture);
           });
 
@@ -687,7 +693,7 @@ const startBuild = async () => {
               return Promise.resolve();
             }
             createDir(path.dirname(resultPath));
-            return sharp(filePath).resize(800, 400, { fit: 'inside', withoutEnlargement: true }).toFile(resultPath);
+            return sharp(filePath).resize(1200, 800, { fit: 'inside', withoutEnlargement: true }).toFile(resultPath);
           };
           const transformImagePromises = paths.map(transformer);
           // add an entry to the transformation map
